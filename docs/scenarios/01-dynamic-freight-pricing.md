@@ -12,7 +12,7 @@ The decision audit carries the calculation identifier, method, assumptions, and 
 
 Web IQ can return cited market or disruption context as `title`, `URL`, `snippet`, `timestamp`, and `source type`. In the default mock mode it returns clearly labelled simulated evidence. This evidence is displayed separately and never enters the rate arithmetic.
 
-An optional Foundry/Azure OpenAI deployment may generate a concise structured operator brief from the precomputed facts and citations. It has no tool that can set a price, alter a contribution, or override guardrails.
+The embedded Foundry/Azure OpenAI deployment generates a concise structured operator brief from precomputed facts and citations through the Container App managed identity. It has no tool that can set a price, alter a contribution, or override guardrails.
 
 ## Standards and sources
 

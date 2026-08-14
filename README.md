@@ -38,7 +38,7 @@ tests/                  Node built-in focused service/config tests
 
 ## Provider configuration
 
-The **Configuration** control stores values in `config/local-settings.json`, which is ignored by Git. Browser status responses disclose only `enabled`, `configured`, and `mode`; they never disclose provider endpoint URLs or secrets. Blank key fields retain an existing local secret.
+The **Configuration** control stores only Web IQ values in `config/local-settings.json`, which is ignored by Git. Browser status responses disclose only `enabled`, `configured`, and `mode`; they never disclose provider endpoint URLs or secrets. Blank key fields retain an existing local secret.
 
 ### Web IQ
 
@@ -55,17 +55,15 @@ When `WEBIQ_ENABLED=false` (the default), each scenario uses deterministic, sour
 ### Foundry / Azure OpenAI
 
 ```text
-FOUNDRY_ENABLED=false
 FOUNDRY_ENDPOINT=
-FOUNDRY_API_KEY=
 FOUNDRY_DEPLOYMENT=
 ```
 
-Foundry is optional. When disabled, it produces a deterministic mock advisory brief. When enabled, the server invokes an Azure OpenAI chat-completions deployment with a JSON response contract validated by Zod. Invalid model output and live failures are surfaced explicitly. Never put these values in `public/`, source control, or a browser-facing response.
+Foundry is embedded rather than browser-configurable. In Azure Container Apps the server uses `DefaultAzureCredential`, which resolves to the app's system-assigned managed identity; the identity must have the **Cognitive Services OpenAI User** role on the Foundry resource. Local use remains mock-first unless both non-secret environment values are set and the local Azure CLI identity has access. The server invokes an Azure OpenAI chat-completions deployment with a JSON response contract validated by Zod. Invalid model output and live failures are surfaced explicitly.
 
 ## Deployment
 
-Deploy as a Node 20+ web service with `npm ci` and `npm start`. Set `PORT` from the hosting platform and inject provider values with its secret store/environment configuration. Run behind HTTPS, restrict admin/configuration access in a production adaptation, and use a managed identity or secret manager instead of local settings. This demo intentionally has no database or live operational feed.
+Deploy as a Node 20+ web service with `npm ci` and `npm start`, or build the included `Dockerfile`. The Azure deployment uses an external Azure Container App with `FOUNDRY_ENDPOINT` and `FOUNDRY_DEPLOYMENT` as non-secret environment variables and a system-assigned managed identity for OpenAI inference. Grant only **Cognitive Services OpenAI User** on the Foundry account. Run behind HTTPS, restrict Web IQ configuration access in a production adaptation, and use a managed identity or secret manager instead of local settings. This demo intentionally has no database or live operational feed.
 
 ## Standards references
 

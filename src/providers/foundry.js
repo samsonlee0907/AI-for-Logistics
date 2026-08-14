@@ -1,5 +1,14 @@
-import { getSettings } from "../config/settings.js";
+import { DefaultAzureCredential, getBearerTokenProvider } from "@azure/identity";
+import { AzureOpenAI } from "openai";
 import { briefSchema } from "../schemas/contracts.js";
+
+function parseStructuredBrief(content) {
+  const text = Array.isArray(content) ? content.map((part) => part.text || "").join("") : content;
+  const normalized = String(text || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  const jsonObject = normalized.match(/\{[\s\S]*\}/)?.[0];
+  if (!jsonObject) throw new Error("No JSON object returned.");
+  return briefSchema.parse(JSON.parse(jsonObject));
+}
 
 function mockBrief(scenario) {
   return {
@@ -13,43 +22,42 @@ function mockBrief(scenario) {
 }
 
 export async function createOperatorBrief({ scenario, facts, evidence }) {
-  const { foundry } = getSettings();
-  if (!foundry.enabled) return mockBrief(scenario);
-  if (!foundry.endpoint || !foundry.apiKey || !foundry.deployment) throw new Error("Foundry is enabled but endpoint, API key, or deployment is missing.");
-  const endpoint = new URL(`openai/deployments/${encodeURIComponent(foundry.deployment)}/chat/completions`, foundry.endpoint.endsWith("/") ? foundry.endpoint : `${foundry.endpoint}/`);
-  endpoint.searchParams.set("api-version", "2024-10-21");
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: { "api-key": foundry.apiKey, "content-type": "application/json" },
-    body: JSON.stringify({
-      temperature: 0,
+  const endpoint = process.env.FOUNDRY_ENDPOINT;
+  const deployment = process.env.FOUNDRY_DEPLOYMENT;
+  if (!endpoint || !deployment) return mockBrief(scenario);
+  const credential = new DefaultAzureCredential();
+  const azureADTokenProvider = getBearerTokenProvider(credential, "https://cognitiveservices.azure.com/.default");
+  const client = new AzureOpenAI({ endpoint, azureADTokenProvider, apiVersion: "2024-10-21" });
+  let completion;
+  try {
+    completion = await client.chat.completions.create({
+      model: deployment,
+      temperature: 1,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: "You are an operations brief writer. Use only the supplied facts and citations. Do not calculate, invent facts, or give navigation instructions. Return JSON with headline, actions (2-4), caution." },
+        { role: "system", content: "You are an operations brief writer. Use only the supplied facts and citations. Do not calculate, invent facts, or give navigation instructions. Return one JSON object only, with headline, actions (2-4), and caution. Do not use markdown fences." },
         { role: "user", content: JSON.stringify({ scenario, deterministicFacts: facts, citedEvidence: evidence }) }
       ]
-    }),
-    signal: AbortSignal.timeout(15_000)
-  });
-  if (!response.ok) throw new Error(`Foundry advisory request failed (${response.status}).`);
-  const payload = await response.json();
-  const content = payload?.choices?.[0]?.message?.content;
+    });
+  } catch (error) {
+    throw new Error(`Embedded Foundry advisory request failed: ${error.message}`);
+  }
+  const content = completion?.choices?.[0]?.message?.content;
   let parsed;
   try {
-    parsed = briefSchema.parse(JSON.parse(content));
-  } catch {
-    throw new Error("Foundry returned an invalid structured operator brief.");
+    parsed = parseStructuredBrief(content);
+  } catch (error) {
+    throw new Error(`Foundry returned an invalid structured operator brief: ${error.message}`);
   }
   return { mode: "live", brief: parsed };
 }
 
 export async function testFoundryConnection() {
-  const { foundry } = getSettings();
-  if (!foundry.enabled) return { provider: "Foundry", mode: "mock", ok: true, message: "Mock advisory mode is active; no model request was made." };
+  if (!process.env.FOUNDRY_ENDPOINT || !process.env.FOUNDRY_DEPLOYMENT) return { provider: "Foundry", mode: "mock", ok: true, message: "Embedded Foundry environment is not present locally; mock advisory mode is active." };
   try {
     await createOperatorBrief({ scenario: "Connection test", facts: { test: true }, evidence: [] });
-    return { provider: "Foundry", mode: "live", ok: true, message: "Live structured advisory response validated." };
+    return { provider: "Foundry", mode: "managed-identity", ok: true, message: "Managed identity structured advisory response validated." };
   } catch (error) {
-    return { provider: "Foundry", mode: "live", ok: false, message: error.message };
+    return { provider: "Foundry", mode: "managed-identity", ok: false, message: error.message };
   }
 }

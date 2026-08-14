@@ -24,12 +24,10 @@ export function createApp() {
   app.put("/api/providers", (request, response, next) => {
     try {
       const input = settingsInputSchema.parse(request.body);
-      const existing = getSettings();
       updateSettings({
-        webIq: { enabled: input.webIq.enabled, ...(input.webIq.baseUrl ? { baseUrl: input.webIq.baseUrl } : {}), ...(input.webIq.apiKey ? { apiKey: input.webIq.apiKey } : {}) },
-        foundry: { enabled: input.foundry.enabled, ...(input.foundry.endpoint ? { endpoint: input.foundry.endpoint } : {}), ...(input.foundry.apiKey ? { apiKey: input.foundry.apiKey } : {}), ...(input.foundry.deployment ? { deployment: input.foundry.deployment } : {}) }
+        webIq: { enabled: input.webIq.enabled, ...(input.webIq.baseUrl ? { baseUrl: input.webIq.baseUrl } : {}), ...(input.webIq.apiKey ? { apiKey: input.webIq.apiKey } : {}) }
       });
-      response.json({ ...publicProviderStatus(), retainedCredentials: { webIq: Boolean(existing.webIq.apiKey), foundry: Boolean(existing.foundry.apiKey) } });
+      response.json({ ...publicProviderStatus(), retainedCredentials: { webIq: Boolean(getSettings().webIq.apiKey) } });
     } catch (error) { next(error); }
   });
 

@@ -5,12 +5,6 @@ export const settingsInputSchema = z.object({
     enabled: z.boolean(),
     baseUrl: z.string().url().optional(),
     apiKey: z.string().max(500).optional()
-  }),
-  foundry: z.object({
-    enabled: z.boolean(),
-    endpoint: z.string().url().optional(),
-    apiKey: z.string().max(500).optional(),
-    deployment: z.string().max(120).optional()
   })
 });
 

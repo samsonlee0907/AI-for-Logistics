@@ -12,7 +12,7 @@ The operator may select balanced, cost, or service prioritization. Every propose
 
 Web IQ may supply a cited demand or restriction shift for planner awareness. Live failure remains visible to the client; it is never silently replaced with simulated success. External evidence cannot alter balances, prioritization, or feasibility.
 
-The optional Foundry provider can create a short structured brief from calculated moves and cited evidence. It does not create or approve a repositioning order.
+The embedded Foundry provider can create a short structured brief from calculated moves and cited evidence through the Container App managed identity. It does not create or approve a repositioning order.
 
 ## Standards and sources
 

@@ -37,11 +37,9 @@ test("container utilization produces capacity-aware ranked moves", () => {
 
 test("provider status never exposes server endpoints or secrets", () => {
   updateSettings({
-    webIq: { enabled: false, baseUrl: "https://private.example/v3", apiKey: "web-iq-test-secret" },
-    foundry: { enabled: false, endpoint: "https://private-openai.example", apiKey: "foundry-test-secret", deployment: "demo" }
+    webIq: { enabled: false, baseUrl: "https://private.example/v3", apiKey: "web-iq-test-secret" }
   });
   const status = JSON.stringify(publicProviderStatus());
   assert.equal(status.includes("secret"), false);
   assert.equal(status.includes("private.example"), false);
-  assert.equal(status.includes("private-openai"), false);
 });

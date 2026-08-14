@@ -76,13 +76,12 @@ async function loadScenario(name) {
 async function providerStatus() {
   const status = await api("/api/providers");
   $("#webIqEnabled").checked = status.webIq.enabled;
-  $("#foundryEnabled").checked = status.foundry.enabled;
 }
 
 async function saveProviders() {
-  const body = { webIq: { enabled: $("#webIqEnabled").checked, baseUrl: $("#webIqBaseUrl").value || undefined, apiKey: $("#webIqKey").value || undefined }, foundry: { enabled: $("#foundryEnabled").checked, endpoint: $("#foundryEndpoint").value || undefined, apiKey: $("#foundryKey").value || undefined, deployment: $("#foundryDeployment").value || undefined } };
+  const body = { webIq: { enabled: $("#webIqEnabled").checked, baseUrl: $("#webIqBaseUrl").value || undefined, apiKey: $("#webIqKey").value || undefined } };
   await api("/api/providers", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
-  $("#webIqKey").value = ""; $("#foundryKey").value = "";
+  $("#webIqKey").value = "";
   $("#configDialog").close();
   await loadScenario(state.currentScenario);
 }
@@ -119,6 +118,5 @@ $("#resetVessel").addEventListener("click", () => { state.vesselMinutes = 0; loa
 $("#openConfig").addEventListener("click", async () => { await providerStatus(); $("#configDialog").showModal(); });
 $("#saveConfig").addEventListener("click", () => saveProviders().catch((error) => alert(`Unable to save: ${error.message}`)));
 $("#testWebIq").addEventListener("click", () => testProvider("webiq"));
-$("#testFoundry").addEventListener("click", () => testProvider("foundry"));
 document.querySelectorAll(".brief-button").forEach((button) => button.addEventListener("click", () => brief(button.dataset.scenario)));
 loadPricing();
