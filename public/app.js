@@ -124,7 +124,18 @@ async function saveProviders() {
 async function testProvider(provider) {
   const target = provider === "webiq" ? "#webIqResult" : "#foundryResult";
   $(target).textContent = "Testing…";
-  try { const result = await api(`/api/providers/${provider}/test`, { method: "POST" }); $(target).textContent = `${result.mode}: ${result.message}`; }
+  try {
+    if (provider === "webiq") {
+      await api("/api/providers", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ webIq: { enabled: $("#webIqEnabled").checked, apiKey: $("#webIqKey").value || undefined } })
+      });
+      $("#webIqKey").value = "";
+    }
+    const result = await api(`/api/providers/${provider}/test`, { method: "POST" });
+    $(target).textContent = `${result.mode}: ${result.message}`;
+  }
   catch (error) { $(target).textContent = `Failed: ${error.message}`; }
 }
 
