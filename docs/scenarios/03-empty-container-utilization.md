@@ -10,9 +10,9 @@ The operator may select balanced, cost, or service prioritization. Every propose
 
 ## External intelligence and model roles
 
-Web IQ may supply a cited demand or restriction shift for planner awareness. Live failure remains visible to the client; it is never silently replaced with simulated success. External evidence cannot alter balances, prioritization, or feasibility.
+Web IQ supplies cited latest equipment news plus demand/restriction context. The UI exposes the source type and freshness. Live failure remains visible to the client; it is never silently replaced with simulated success. External evidence cannot alter balances, terminal capacity caps, or feasibility.
 
-The embedded Foundry provider can create a short structured brief from calculated moves and cited evidence through the Container App managed identity. It does not create or approve a repositioning order.
+GPT-5.6-Terra reasons over calculated moves and indexed evidence through the Container App managed identity. It returns a validated reasoning trace and can select one existing move rank as the evidence-informed priority; that move is highlighted for the operator. It cannot create a new move, alter capacity constraints, or approve a repositioning order.
 
 ## Standards and sources
 

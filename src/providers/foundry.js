@@ -23,12 +23,20 @@ function mockBrief(scenario) {
     mode: "mock",
     brief: {
       headline: `${scenario}: review the deterministic recommendation before operational release.`,
-      rationale: "The recommendation is based on the displayed deterministic factors and guardrails. No external model changes the underlying calculation.",
-      actions: ["Use the displayed recommendation and guardrails as the decision baseline.", "Review cited context as advisory evidence, not as a calculation input."],
+      rationale: "The embedded model is unavailable in this environment, so no evidence-informed AI decision input was applied.",
+      reasoningSteps: ["Read the published deterministic operational baseline.", "No live GPT-5.6-Terra decision input is available in this environment."],
+      actions: ["Use the deterministic baseline for this synthetic demonstration.", "Enable the embedded Foundry environment to add bounded AI reasoning."],
       caution: "Synthetic demo data only. This is not a production pricing, navigation, or dispatch instruction."
     },
-    citedSources: []
+    citedSources: [],
+    decision: { selectionType: "none", influence: "No model decision input was applied." }
   };
+}
+
+export function resolveScenarioDecision(scenario, facts, decision) {
+  if (scenario === "vessel" && decision.selectionType === "route" && facts.options.some((option) => option.id === decision.selectionId)) return decision;
+  if (scenario === "containers" && decision.selectionType === "move" && facts.moves.some((move) => String(move.rank) === decision.selectionId)) return decision;
+  return { selectionType: "none", influence: `${decision.influence} The submitted selection was not a valid deterministic option, so it was not applied.` };
 }
 
 export async function createOperatorBrief({ scenario, facts, evidence }) {
@@ -45,7 +53,7 @@ export async function createOperatorBrief({ scenario, facts, evidence }) {
       temperature: 1,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: "You are an operations recommendation agent. Explain why the deterministic recommendation was made by reasoning over the supplied factors, options, guardrails, and citations. Keep rationale below 900 characters. Do not calculate, invent facts, or give navigation instructions. Return one JSON object only with headline, rationale, actions (2-4), caution, and sourceIndexes (0-3 citation indexes used). Use sourceIndexes only from supplied citations; never invent a source, URL, or operational fact. Do not use markdown fences." },
+        { role: "system", content: "You are GPT-5.6-Terra, an evidence-informed logistics decision agent. Reason over the supplied deterministic operating facts and indexed external citations. Show how cited current news, weather, market, or restriction context influences the decision where relevant. For vessel, select exactly one listed route id as a bounded recommendation; for containers, select exactly one listed move rank; for pricing, return selectionType none because its bounded market/disruption basis-point signal is already supplied in the facts. You may only select identifiers present in the deterministic facts. You cannot invent operational facts, sources, URLs, routes, capacity, or prices. Return one JSON object only with headline, rationale (under 900 chars), reasoningSteps (2-4), actions (2-4), caution, sourceIndexes (0-3 supplied citation indexes), and decision { selectionType: none|route|move, selectionId when applicable, influence }. Do not use markdown fences." },
         { role: "user", content: JSON.stringify({ scenario, deterministicFacts: facts, citations: evidence.map((item, index) => ({ index, ...item })) }) }
       ]
     });
@@ -60,10 +68,12 @@ export async function createOperatorBrief({ scenario, facts, evidence }) {
     throw new Error(`Foundry returned an invalid structured operator brief: ${error.message}`);
   }
   const citedSources = [...new Set(parsed.sourceIndexes)].map((index) => evidence[index]).filter(Boolean);
+  const decision = resolveScenarioDecision(scenario, facts, parsed.decision);
   return {
     mode: "live",
-    brief: { headline: parsed.headline, rationale: parsed.rationale, actions: parsed.actions, caution: parsed.caution },
-    citedSources
+    brief: { headline: parsed.headline, rationale: parsed.rationale, reasoningSteps: parsed.reasoningSteps, actions: parsed.actions, caution: parsed.caution },
+    citedSources,
+    decision
   };
 }
 
@@ -79,7 +89,7 @@ export async function createPricingAdvisory({ facts, evidence }) {
       temperature: 1,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: "You are a freight-pricing advisory analyst. Review the supplied deterministic baseline factors and cited external context. Return JSON only: marketBps (-150..150 integer), disruptionBps (-150..150 integer), rationale (max 500 chars), sourceIndexes (0..3 supplied citation indexes). Never invent facts, sources, or URLs. This is a bounded advisory input, not a price quote." },
+        { role: "system", content: "You are GPT-5.6-Terra, a freight-pricing decision analyst. Review deterministic baseline factors and indexed external citations, then return one JSON object only with headline, marketBps (-150..150 integer), disruptionBps (-150..150 integer), rationale (max 500 chars), reasoningSteps (2-4), actions (2-4), caution, and sourceIndexes (0-3 supplied citation indexes). Explain how cited market or disruption context influenced the two basis-point inputs when sources are present. Never invent facts, sources, or URLs. This is a bounded advisory input, not a free-form quote; the server will clamp and guardrail the result. Do not use markdown fences." },
         { role: "user", content: JSON.stringify({ deterministicBaseline: facts, citations: evidence.map((item, index) => ({ index, ...item })) }) }
       ]
     });

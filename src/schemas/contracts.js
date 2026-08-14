@@ -10,15 +10,25 @@ export const settingsInputSchema = z.object({
 export const briefSchema = z.object({
   headline: z.string().max(180),
   rationale: z.string().max(1600),
+  reasoningSteps: z.array(z.string().max(260)).min(2).max(4),
   actions: z.array(z.string().max(300)).min(2).max(4),
   caution: z.string().max(240),
-  sourceIndexes: z.array(z.number().int().nonnegative()).max(3).default([])
+  sourceIndexes: z.array(z.number().int().nonnegative()).max(3).default([]),
+  decision: z.object({
+    selectionType: z.enum(["none", "route", "move"]),
+    selectionId: z.string().max(80).optional(),
+    influence: z.string().max(300)
+  })
 });
 
 export const pricingAdvisorySchema = z.object({
+  headline: z.string().max(180),
   marketBps: z.number().int().min(-150).max(150),
   disruptionBps: z.number().int().min(-150).max(150),
   rationale: z.string().max(700),
+  reasoningSteps: z.array(z.string().max(260)).min(2).max(4),
+  actions: z.array(z.string().max(300)).min(2).max(4),
+  caution: z.string().max(240),
   sourceIndexes: z.array(z.number().int().nonnegative()).max(3).default([])
 });
 

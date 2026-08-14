@@ -10,9 +10,9 @@ The deterministic route graph compares the planned Shanghai-Singapore-Jebel Ali-
 
 ## External intelligence and model roles
 
-Web IQ may provide citation-ready port, weather, and disruption context. In mock mode, the evidence is visibly labelled simulated. It is not used to navigate the vessel or alter route rankings.
+Web IQ provides citation-ready latest maritime news plus origin and destination weather/port context. The portal displays the source type and freshness so an operator can judge whether it remains decision-relevant. It does not modify distances, vessel state, risk, cost, carbon, or feasibility calculations.
 
-Foundry can only write a validated JSON operator brief from the displayed calculated facts and citations. It cannot create a route, issue a sailing order, or replace marine operational controls.
+GPT-5.6-Terra reasons over the calculated trade-offs and the indexed citations, then returns a validated trace and can select one route identifier from the deterministic alternatives as its evidence-informed recommendation. The selected route is highlighted in the portal; an operator may select a different viable option. The model cannot create a route, issue a sailing order, or replace marine operational controls.
 
 ## Standards and sources
 

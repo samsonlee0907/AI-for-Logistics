@@ -26,14 +26,17 @@ function evidence(target, modeTarget, data) {
   const { mode, evidence: sources } = data.externalIntelligence;
   $(modeTarget).textContent = mode === "live" ? "LIVE CITATIONS" : "OFF";
   if (!sources.length) {
-    $(target).innerHTML = `<div class="evidence-empty"><strong>External intelligence is off</strong><p>These recommendations use only deterministic synthetic scenario data. Enable Web IQ to add cited advisory context.</p></div>`;
+    $(target).innerHTML = `<div class="evidence-empty"><strong>Web IQ evidence is off</strong><p>GPT-5.6-Terra can still reason over synthetic operating facts. Enable Web IQ to supply current cited news and conditions as additional decision evidence.</p></div>`;
     return;
   }
   $(target).innerHTML = sources.map((item) => {
     let domain = "source";
     try { domain = new URL(item.url).hostname.replace(/^www\./, ""); } catch { /* URL was validated server-side, retain safe label if it is malformed. */ }
     const excerpt = h(item.snippet);
-    return `<article class="evidence"><div class="evidence-meta"><span>${h(domain)}</span><span>${h(item.sourceType)}</span><span>${new Date(item.timestamp).toLocaleDateString()}</span></div><a href="${h(item.url)}" target="_blank" rel="noreferrer">${h(item.title)}</a><p>${excerpt.slice(0, 210)}${excerpt.length > 210 ? "…" : ""}</p>${excerpt.length > 210 ? `<details><summary>Read cited context</summary><p>${excerpt}</p></details>` : ""}<span class="evidence-link">Open source ↗</span></article>`;
+    const timestamp = new Date(item.timestamp);
+    const ageMinutes = Math.max(0, Math.round((Date.now() - timestamp.getTime()) / 60_000));
+    const freshness = Number.isFinite(ageMinutes) ? (ageMinutes < 60 ? `${ageMinutes}m observed` : ageMinutes < 1_440 ? `${Math.round(ageMinutes / 60)}h observed` : `${Math.round(ageMinutes / 1_440)}d observed`) : "timestamp unavailable";
+    return `<article class="evidence"><div class="evidence-meta"><span>${h(domain)}</span><span>${h(item.sourceType)}</span><span>${h(freshness)}</span></div><a href="${h(item.url)}" target="_blank" rel="noreferrer">${h(item.title)}</a><p>${excerpt.slice(0, 210)}${excerpt.length > 210 ? "…" : ""}</p>${excerpt.length > 210 ? `<details><summary>Read cited context</summary><p>${excerpt}</p></details>` : ""}<span class="evidence-link">Open source ↗</span></article>`;
   }).join("");
 }
 
@@ -52,10 +55,10 @@ async function loadPricing() {
   $("#priceAudit").innerHTML = Object.entries(data.audit).filter(([key]) => key !== "assumptions").map(([key, value]) => `<div><dt>${h(key.replace(/([A-Z])/g, " $1"))}</dt><dd>${h(value)}</dd></div>`).join("");
   const baseline = data.baselineRecommendation || data.recommendation;
   const adjustment = data.aiAdjustment || { amount: 0, basisPoints: 0, mode: "unavailable" };
-  $("#pricingKpis").innerHTML = [["Deterministic baseline", money(baseline)], ["AI-reviewed signal", `${adjustment.basisPoints >= 0 ? "+" : ""}${adjustment.basisPoints} bps`], ["Final bounded change", `${adjustment.amount >= 0 ? "+" : ""}${money(adjustment.amount)}`], ["Guardrail headroom", money(data.guardrails.ceiling - data.recommendation)]].map(([label, value]) => `<article class="metric"><span>${label}</span><strong>${value}</strong></article>`).join("");
+  $("#pricingKpis").innerHTML = [["Deterministic baseline", money(baseline)], ["GPT market signal", `${adjustment.basisPoints >= 0 ? "+" : ""}${adjustment.basisPoints} bps`], ["Evidence-informed change", `${adjustment.amount >= 0 ? "+" : ""}${money(adjustment.amount)}`], ["Guardrail headroom", money(data.guardrails.ceiling - data.recommendation)]].map(([label, value]) => `<article class="metric"><span>${label}</span><strong>${value}</strong></article>`).join("");
   $("#factorList").innerHTML = data.factors.map((factor) => `<article class="factor"><div><strong>${h(factor.label)}</strong><small>${h(factor.rationale)}</small></div><b class="${factor.value >= 0 ? "up" : "down"}">${factor.value >= 0 ? "+" : ""}${money(factor.value)}</b></article>`).join("");
   evidence("#pricingEvidence", "#pricingEvidenceMode", data);
-  loadAgentRecommendation("pricing", Object.fromEntries(query), "#pricingAi");
+  renderAgentRecommendation("#pricingAi", data.aiReasoning);
 }
 
 function mapSvg(data) {
@@ -88,13 +91,14 @@ async function loadVessel() {
   $("#disruptionBadge").className = `badge risk-${data.disruption.severity}`;
   $("#vesselDisruption").textContent = data.disruption.description;
   $("#vesselMetrics").innerHTML = [["Port congestion", `${Math.round(data.signals.congestion * 100)}%`], ["Berth wait", `${data.signals.berthWait}h`], ["Weather penalty", `${Math.round(data.signals.weatherPenalty * 100)}%`], ["Vessel speed", `${data.vessel.speed} kn`]].map(([label, value]) => `<article class="metric"><span>${label}</span><strong>${value}</strong></article>`).join("");
-  const selected = data.options.find((option) => option.id === state.selectedRouteId) || data.options.find((option) => option.recommended);
+  const aiRoute = data.aiReasoning?.decision?.selectionType === "route" ? data.aiReasoning.decision.selectionId : null;
+  const selected = data.options.find((option) => option.id === state.selectedRouteId) || data.options.find((option) => option.id === aiRoute) || data.options.find((option) => option.recommended);
   $("#routeMap").innerHTML = mapSvg(data);
-  $("#routeOptions").innerHTML = data.options.map((option) => `<article class="route-option ${option.id === selected.id ? "selected" : ""}"><div><p>${option.id === selected.id ? "SELECTED" : option.id.toUpperCase()}</p><strong>${option.route.join(" → ")}</strong></div><span class="badge risk-${option.risk}">${option.risk}</span><div class="route-stats"><span>${option.transitHours}h transit</span><span>${money(option.cost)}</span><span>${option.carbon}t CO₂e</span><span>+${option.delay}h delay</span></div></article>`).join("");
+  $("#routeOptions").innerHTML = data.options.map((option) => `<article class="route-option ${option.id === selected.id ? "selected" : ""}"><div><p>${option.id === selected.id ? (option.id === aiRoute && !state.selectedRouteId ? "GPT-RECOMMENDED" : "SELECTED") : option.id.toUpperCase()}</p><strong>${option.route.join(" → ")}</strong></div><span class="badge risk-${option.risk}">${option.risk}</span><div class="route-stats"><span>${option.transitHours}h transit</span><span>${money(option.cost)}</span><span>${option.carbon}t CO₂e</span><span>+${option.delay}h delay</span></div></article>`).join("");
   $("#routeTimeline").innerHTML = [["Plan", data.map.planned.join(" → ")], ["Trigger", data.disruption.description], ["Selected recovery", selected.route.join(" → ")], ["Impact", `${selected.delay}h delay · ${money(selected.cost)} · ${selected.carbon}t CO₂e`]].map(([label, value], index) => `<div class="timeline-step"><b>${index + 1}</b><div><span>${label}</span><strong>${h(value)}</strong></div></div>`).join("");
   $("#vesselDetails").innerHTML = [["Vessel", data.vessel.name], ["MMSI", data.vessel.mmsi], ["Position", `${data.vessel.position[0]}, ${data.vessel.position[1]}`], ["Next port", data.vessel.nextPort], ["Calculation", data.audit.deterministicMethod]].map(([key, value]) => `<div><dt>${h(key)}</dt><dd>${h(value)}</dd></div>`).join("");
   evidence("#vesselEvidence", "#vesselEvidenceMode", data);
-  loadAgentRecommendation("vessel", { minutes: state.vesselMinutes }, "#vesselAi");
+  renderAgentRecommendation("#vesselAi", data.aiReasoning);
 }
 
 async function loadContainers() {
@@ -104,26 +108,24 @@ async function loadContainers() {
   $("#equipmentLabel").textContent = data.equipment;
   $("#containerMetrics").innerHTML = [["Moves proposed", data.moves.length], ["Units repositioned", data.impact.moved], ["Synthetic cost", money(data.impact.cost)], ["Carbon proxy", `${data.impact.carbon}t`]].map(([label, value]) => `<article class="metric"><span>${label}</span><strong>${value}</strong></article>`).join("");
   $("#portBalances").innerHTML = data.ports.map((port) => `<article class="balance"><div><strong>${port.code}</strong><span>${h(port.name)}</span></div><div class="balance-bar"><i class="${port.balance >= 0 ? "surplus" : "deficit"}" style="width:${Math.min(Math.abs(port.balance) / 3.2, 100)}%"></i></div><b class="${port.balance >= 0 ? "up" : "down"}">${port.balance >= 0 ? "+" : ""}${port.balance}</b></article>`).join("");
-  $("#containerMoves").innerHTML = data.moves.map((move) => `<article class="move"><b>#${move.rank}</b><div><strong>${move.origin} → ${move.destination}</strong><span>${move.units} ${data.equipment} · ${move.distance.toLocaleString()} nm</span></div><div><strong>${money(move.cost)}</strong><span>${move.carbon}t CO₂e · +${move.service} service</span></div></article>`).join("");
+  const aiMove = data.aiReasoning?.decision?.selectionType === "move" ? data.aiReasoning.decision.selectionId : null;
+  $("#containerMoves").innerHTML = data.moves.map((move) => `<article class="move ${String(move.rank) === aiMove ? "ai-priority" : ""}"><b>#${move.rank}</b><div><strong>${move.origin} → ${move.destination}</strong><span>${String(move.rank) === aiMove ? "GPT priority · " : ""}${move.units} ${data.equipment} · ${move.distance.toLocaleString()} nm</span></div><div><strong>${money(move.cost)}</strong><span>${move.carbon}t CO₂e · +${move.service} service</span></div></article>`).join("");
   $("#containerFlow").innerHTML = data.moves.slice(0, 3).map((move, index) => `<div class="flow-row"><span class="flow-port">${move.origin}<i class="flow-surplus"></i></span><div class="flow-track"><i style="animation-delay:${index * .25}s"></i><b>${move.units} ${data.equipment}</b></div><span class="flow-port">${move.destination}<i class="flow-deficit"></i></span></div>`).join("");
   $("#constraints").innerHTML = data.moves.map((move) => `<p class="constraint"><strong>${move.origin} → ${move.destination}:</strong> ${h(move.constraint)}</p>`).join("");
   evidence("#containersEvidence", "#containersEvidenceMode", data);
-  loadAgentRecommendation("containers", Object.fromEntries(query), "#containersAi");
+  renderAgentRecommendation("#containersAi", data.aiReasoning);
 }
 
-async function loadAgentRecommendation(scenario, facts, target) {
-  const requestId = (state.recommendationRequests[target] || 0) + 1;
-  state.recommendationRequests[target] = requestId;
-  $(target).innerHTML = `<div class="agent-loading"><span></span>AI agent is reasoning over the deterministic decision factors…</div>`;
-  try {
-    const data = await api(`/api/scenarios/${scenario}/brief`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(facts) });
-    if (state.recommendationRequests[target] !== requestId) return;
-    const sources = data.citedSources?.length ? `<div class="agent-sources">${data.citedSources.map((source) => `<a href="${h(source.url)}" target="_blank" rel="noreferrer">${h(source.title)} ↗</a>`).join("")}</div>` : "";
-    $(target).innerHTML = `<div class="panel-head"><div><p class="eyebrow">AI agent recommendation</p><h3>${h(data.brief.headline)}</h3></div><span class="badge">${data.mode === "live" ? "GPT-5.6-TERRA" : "LOCAL FALLBACK"}</span></div><p class="agent-rationale">${h(data.brief.rationale)}</p><div class="agent-actions">${data.brief.actions.map((action) => `<span>${h(action)}</span>`).join("")}</div><p class="callout">${h(data.brief.caution)}</p>${sources}`;
-  } catch (error) {
-    if (state.recommendationRequests[target] !== requestId) return;
-    $(target).innerHTML = `<div class="agent-error"><strong>AI recommendation unavailable</strong><p>${h(error.message)}</p></div>`;
+function renderAgentRecommendation(target, data) {
+  if (!data || data.mode === "unavailable") {
+    $(target).innerHTML = `<div class="agent-error"><strong>AI decision input unavailable</strong><p>${h(data?.brief?.rationale || "The deterministic decision remains available.")}</p></div>`;
+    return;
   }
+  const sources = data.citedSources?.length ? `<div class="agent-sources"><span>Sources applied</span>${data.citedSources.map((source) => `<a href="${h(source.url)}" target="_blank" rel="noreferrer">${h(source.title)} ↗</a>`).join("")}</div>` : `<p class="tiny">No Web IQ sources were available; GPT reasoned over synthetic operating facts only.</p>`;
+  const steps = data.brief.reasoningSteps?.length ? `<ol class="reasoning-steps">${data.brief.reasoningSteps.map((step) => `<li>${h(step)}</li>`).join("")}</ol>` : "";
+  const influence = data.decision?.influence ? `<div class="decision-influence"><span>Applied decision input</span><strong>${h(data.decision.influence)}</strong></div>` : "";
+  const handoffLabel = target === "#pricingAi" ? "Acknowledge quote review" : target === "#vesselAi" ? "Acknowledge route review" : "Acknowledge move review";
+  $(target).innerHTML = `<div class="panel-head"><div><p class="eyebrow">Evidence-informed GPT reasoning</p><h3>${h(data.brief.headline)}</h3></div><span class="badge">${data.mode === "live" ? "GPT-5.6-TERRA" : "LOCAL FALLBACK"}</span></div><p class="agent-rationale">${h(data.brief.rationale)}</p>${influence}${steps}<div class="agent-actions">${data.brief.actions.map((action) => `<span>${h(action)}</span>`).join("")}</div><div class="operator-handoff"><span>Operator handoff</span><strong>Validate authority, source freshness, and current operating status before execution.</strong><button class="button ghost decision-acknowledge" type="button">${handoffLabel}</button></div><p class="callout">${h(data.brief.caution)}</p>${sources}`;
 }
 
 async function loadScenario(name) {
@@ -199,6 +201,13 @@ $("#openConfig").addEventListener("click", async () => { await providerStatus();
 $("#logout").addEventListener("click", async () => {
   await fetch("/api/auth/logout", { method: "POST" });
   window.location.assign("/login.html");
+});
+document.addEventListener("click", (event) => {
+  const button = event.target.closest(".decision-acknowledge");
+  if (!button) return;
+  button.textContent = "Review acknowledged";
+  button.disabled = true;
+  button.closest(".operator-handoff").classList.add("acknowledged");
 });
 $("#saveConfig").addEventListener("click", () => saveProviders().catch((error) => alert(`Unable to save: ${error.message}`)));
 $("#testWebIq").addEventListener("click", () => testProvider("webiq"));

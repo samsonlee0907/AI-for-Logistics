@@ -6,6 +6,7 @@ import { calculateContainerMoves } from "../src/services/containers.js";
 import { publicProviderStatus } from "../src/config/settings.js";
 import { webIqQueries } from "../src/providers/webiq.js";
 import { createPortalAuth } from "../src/auth/portal-auth.js";
+import { resolveScenarioDecision } from "../src/providers/foundry.js";
 
 test("freight pricing is deterministic, explainable, and guarded", () => {
   const input = { demandIndex: 125, capacityIndex: 78, equipment: "40HC", serviceTier: "priority", disruption: "port-congestion" };
@@ -64,6 +65,14 @@ test("each scenario includes a dedicated latest-news Web IQ query", () => {
   for (const scenario of ["pricing", "vessel", "containers"]) {
     assert.ok(webIqQueries(scenario, calculateVesselRecovery(0)).some((query) => query.endpoint === "news" && /latest/i.test(query.query)));
   }
+});
+
+test("AI route and move selections are restricted to deterministic options", () => {
+  const vessel = calculateVesselRecovery(0);
+  assert.equal(resolveScenarioDecision("vessel", vessel, { selectionType: "route", selectionId: vessel.options[1].id, influence: "Cited weather context favors this option." }).selectionId, vessel.options[1].id);
+  assert.equal(resolveScenarioDecision("vessel", vessel, { selectionType: "route", selectionId: "invented-route", influence: "Invalid." }).selectionType, "none");
+  const containers = calculateContainerMoves({ equipment: "40HC", priority: "balanced" });
+  assert.equal(resolveScenarioDecision("containers", containers, { selectionType: "move", selectionId: "1", influence: "Cited context supports the move." }).selectionId, "1");
 });
 
 test("portal authentication issues only a signed session for valid credentials", () => {

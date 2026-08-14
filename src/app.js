@@ -58,7 +58,24 @@ export function createApp() {
       const context = await getWebIqEvidence(request.params.scenario, baseline);
       const advisory = request.params.scenario === "pricing" ? await createPricingAdvisory({ facts: baseline, evidence: context.evidence }) : null;
       const result = request.params.scenario === "pricing" ? applyPricingAdvisory(baseline, advisory) : baseline;
-      return response.json({ ...result, externalIntelligence: { label: "External intelligence — advisory context only", ...context } });
+      let aiReasoning;
+      if (request.params.scenario === "pricing") {
+        aiReasoning = advisory?.mode === "live"
+          ? {
+              mode: "live",
+              brief: { headline: advisory.headline, rationale: advisory.rationale, reasoningSteps: advisory.reasoningSteps, actions: advisory.actions, caution: advisory.caution },
+              citedSources: advisory.citedSources,
+              decision: { selectionType: "none", influence: `GPT-5.6-Terra proposed ${advisory.marketBps >= 0 ? "+" : ""}${advisory.marketBps} bps market and ${advisory.disruptionBps >= 0 ? "+" : ""}${advisory.disruptionBps} bps disruption inputs; the server applied ${result.aiAdjustment.basisPoints >= 0 ? "+" : ""}${result.aiAdjustment.basisPoints} bps after bounds validation.` }
+            }
+          : { mode: "unavailable", brief: { headline: "AI price input unavailable", rationale: advisory?.message || "No live model adjustment was available.", reasoningSteps: [], actions: [], caution: "The deterministic baseline remains available." }, citedSources: [], decision: { selectionType: "none", influence: "No AI price input was applied." } };
+      } else {
+        try {
+          aiReasoning = await createOperatorBrief({ scenario: request.params.scenario, facts: result, evidence: context.evidence });
+        } catch (error) {
+          aiReasoning = { mode: "unavailable", brief: { headline: "AI decision input unavailable", rationale: error.message, reasoningSteps: [], actions: [], caution: "The deterministic scenario remains available." }, citedSources: [], decision: { selectionType: "none", influence: "No AI decision input was applied." } };
+        }
+      }
+      return response.json({ ...result, externalIntelligence: { label: "External intelligence — evidence for GPT reasoning", ...context }, aiReasoning });
     } catch (error) { return next(error); }
   });
 

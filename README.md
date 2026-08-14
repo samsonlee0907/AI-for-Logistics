@@ -34,7 +34,7 @@ docs/scenarios/         Per-scenario calculation and safety documentation
 tests/                  Node built-in focused service/config tests
 ```
 
-`src/app.js` is the Express API and static-server composition root. All scenario APIs first calculate deterministic facts. Web IQ evidence is attached as labelled context; Foundry receives only precomputed facts and citations to create scenario recommendations and, for pricing, a bounded market/disruption signal.
+`src/app.js` is the Express API and static-server composition root. Each scenario starts with deterministic operational facts and passes only those facts plus indexed Web IQ citations to Foundry. GPT-5.6-Terra returns a validated reasoning trace and source selections. For pricing, it also proposes bounded market/disruption signals; for vessel recovery and equipment utilization, it can select only from the already-calculated viable routes or ranked moves. The client displays the selected evidence, reasoning trace, freshness, and operator handoff.
 
 ## Provider configuration
 
@@ -63,7 +63,7 @@ FOUNDRY_ENDPOINT=
 FOUNDRY_DEPLOYMENT=
 ```
 
-Foundry is embedded rather than browser-configurable. In Azure Container Apps the server uses `DefaultAzureCredential`, which resolves to the app's system-assigned managed identity; the identity must have the **Cognitive Services OpenAI User** role on the Foundry resource. The server validates structured model responses with Zod. For freight pricing it accepts only separate market and disruption signals of -150 to +150 basis points each, clamps their combined effect to +/-300 basis points, then recalculates published guardrails. Invalid model output or a live failure leaves the deterministic baseline visible with an explicit unavailable status.
+Foundry is embedded rather than browser-configurable. In Azure Container Apps the server uses `DefaultAzureCredential`, which resolves to the app's system-assigned managed identity; the identity must have the **Cognitive Services OpenAI User** role on the Foundry resource. The server validates structured model responses with Zod and accepts only source indexes it supplied. For freight pricing it accepts separate market and disruption signals of -150 to +150 basis points each, clamps their combined effect to +/-300 basis points, then recalculates published guardrails. For recovery and utilization it rejects any AI-selected route or move not present in the deterministic option set. Invalid model output or a live failure leaves the deterministic baseline visible with an explicit unavailable status.
 
 ## Deployment
 
