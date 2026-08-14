@@ -12,7 +12,7 @@ export const briefSchema = z.object({
   rationale: z.string().max(1600),
   reasoningSteps: z.array(z.string().max(260)).min(2).max(4),
   actions: z.array(z.string().max(300)).min(2).max(4),
-  caution: z.string().max(240),
+  caution: z.string().max(500),
   sourceIndexes: z.array(z.number().int().nonnegative()).max(3).default([]),
   decision: z.object({
     selectionType: z.enum(["none", "route", "move"]),
@@ -28,7 +28,7 @@ export const pricingAdvisorySchema = z.object({
   rationale: z.string().max(700),
   reasoningSteps: z.array(z.string().max(260)).min(2).max(4),
   actions: z.array(z.string().max(300)).min(2).max(4),
-  caution: z.string().max(240),
+  caution: z.string().max(500),
   sourceIndexes: z.array(z.number().int().nonnegative()).max(3).default([])
 });
 

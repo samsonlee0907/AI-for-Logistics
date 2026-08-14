@@ -98,6 +98,20 @@ test("structured AI decisions normalize a numeric move rank", () => {
   assert.equal(brief.decision.selectionId, "1");
 });
 
+test("structured AI cautions allow a complete operator warning", () => {
+  const caution = "Verify whether the dated research snapshot still reflects current weather, port restrictions, carrier acceptance, commercial authority, and any operational notice before acting on this synthetic demonstration recommendation.";
+  const brief = briefSchema.parse({
+    headline: "Review the selected deterministic option.",
+    rationale: "A dated source can inform the review but cannot replace operational confirmation.",
+    reasoningSteps: ["Inspect the source timestamp.", "Confirm current operating conditions."],
+    actions: ["Confirm with the carrier.", "Record the operator decision."],
+    caution,
+    sourceIndexes: [],
+    decision: { selectionType: "none", influence: "No option was changed." }
+  });
+  assert.equal(brief.caution, caution);
+});
+
 test("portal authentication issues only a signed session for valid credentials", () => {
   const auth = createPortalAuth({
     PORTAL_AUTH_USERNAME: "test-user",
