@@ -2,7 +2,7 @@ import { getSettings } from "../config/settings.js";
 import { mockEvidence } from "../fixtures/data.js";
 
 function normalizeEvidence(payload) {
-  const rows = payload?.value || payload?.results || payload?.webPages?.value || [];
+  const rows = payload?.value || payload?.results || payload?.webPages?.value || payload?.data?.results || [];
   return rows.slice(0, 3).map((row) => ({
     title: row.name || row.title || "Untitled source",
     url: row.url || row.link || "",
@@ -16,9 +16,25 @@ export async function getWebIqEvidence(topic) {
   const { webIq } = getSettings();
   if (!webIq.enabled) return { mode: "mock", evidence: mockEvidence[topic] };
   if (!webIq.apiKey) throw new Error("Web IQ is enabled but no API key is configured.");
-  const url = new URL("search", webIq.baseUrl.endsWith("/") ? webIq.baseUrl : `${webIq.baseUrl}/`);
-  url.searchParams.set("q", `${topic} shipping logistics operational context`);
-  const response = await fetch(url, { headers: { "x-apikey": webIq.apiKey, accept: "application/json" }, signal: AbortSignal.timeout(10_000) });
+  const url = new URL("search/web", webIq.baseUrl.endsWith("/") ? webIq.baseUrl : `${webIq.baseUrl}/`);
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "x-apikey": webIq.apiKey,
+      accept: "application/json",
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      query: `${topic} shipping logistics operational context`,
+      maxResults: 3,
+      language: "en",
+      region: "US",
+      contentFormat: "html",
+      maxLength: 10_000,
+      safeSearch: "strict"
+    }),
+    signal: AbortSignal.timeout(10_000)
+  });
   if (!response.ok) throw new Error(`Web IQ request failed (${response.status}).`);
   const evidence = normalizeEvidence(await response.json());
   if (!evidence.length) throw new Error("Web IQ returned no usable citation-ready evidence.");
