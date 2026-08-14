@@ -17,7 +17,8 @@ function mockBrief(scenario) {
       headline: `${scenario}: review the deterministic recommendation before operational release.`,
       actions: ["Use the displayed recommendation and guardrails as the decision baseline.", "Review cited context as advisory evidence, not as a calculation input."],
       caution: "Synthetic demo data only. This is not a production pricing, navigation, or dispatch instruction."
-    }
+    },
+    citedSources: []
   };
 }
 
@@ -35,8 +36,8 @@ export async function createOperatorBrief({ scenario, facts, evidence }) {
       temperature: 1,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: "You are an operations brief writer. Use only the supplied facts and citations. Do not calculate, invent facts, or give navigation instructions. Return one JSON object only, with headline, actions (2-4), and caution. Do not use markdown fences." },
-        { role: "user", content: JSON.stringify({ scenario, deterministicFacts: facts, citedEvidence: evidence }) }
+        { role: "system", content: "You are an operations brief writer. Use only supplied facts and citations. Do not calculate, invent facts, or give navigation instructions. Return one JSON object only with headline, actions (2-4), caution, and sourceIndexes (0-3 citation indexes used). Use sourceIndexes only from supplied citations; never invent a source, URL, or operational fact. Do not use markdown fences." },
+        { role: "user", content: JSON.stringify({ scenario, deterministicFacts: facts, citations: evidence.map((item, index) => ({ index, ...item })) }) }
       ]
     });
   } catch (error) {
@@ -49,7 +50,12 @@ export async function createOperatorBrief({ scenario, facts, evidence }) {
   } catch (error) {
     throw new Error(`Foundry returned an invalid structured operator brief: ${error.message}`);
   }
-  return { mode: "live", brief: parsed };
+  const citedSources = [...new Set(parsed.sourceIndexes)].map((index) => evidence[index]).filter(Boolean);
+  return {
+    mode: "live",
+    brief: { headline: parsed.headline, actions: parsed.actions, caution: parsed.caution },
+    citedSources
+  };
 }
 
 export async function testFoundryConnection() {

@@ -14,30 +14,6 @@ export const pricingBase = {
   disruption: "port-congestion"
 };
 
-export const mockEvidence = {
-  pricing: [{
-    title: "Synthetic Asia-Europe capacity watch",
-    url: "https://example.invalid/synthetic/asia-europe-capacity",
-    snippet: "Simulated advisory signal: capacity remains constrained while terminal queues are elevated.",
-    timestamp: "2026-08-14T03:00:00Z",
-    sourceType: "simulated market bulletin"
-  }],
-  vessel: [{
-    title: "Synthetic Singapore weather and terminal advisory",
-    url: "https://example.invalid/synthetic/singapore-advisory",
-    snippet: "Simulated advisory signal: thunderstorm risk is escalating alongside berth waiting time.",
-    timestamp: "2026-08-14T03:00:00Z",
-    sourceType: "simulated port bulletin"
-  }],
-  containers: [{
-    title: "Synthetic equipment demand shift",
-    url: "https://example.invalid/synthetic/equipment-demand",
-    snippet: "Simulated advisory signal: North Europe export demand is lifting 40HC deficit pressure.",
-    timestamp: "2026-08-14T03:00:00Z",
-    sourceType: "simulated equipment bulletin"
-  }]
-};
-
 export const ports = {
   CNSHA: { name: "Shanghai", latitude: 31.23, longitude: 121.47 },
   SGSIN: { name: "Singapore", latitude: 1.29, longitude: 103.85 },

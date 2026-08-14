@@ -1,5 +1,4 @@
 import { getSettings } from "../config/settings.js";
-import { mockEvidence } from "../fixtures/data.js";
 
 function normalizeEvidence(payload) {
   const rows = [];
@@ -19,7 +18,10 @@ function normalizeEvidence(payload) {
     Object.values(value).forEach((item) => visit(item, depth + 1));
   };
   visit(payload);
-  const text = (value) => typeof value === "string" ? value : value?.text || value?.content || "";
+  const text = (value) => {
+    const raw = typeof value === "string" ? value : value?.text || value?.content || "";
+    return raw.replace(/<[^>]+>/g, " ").replace(/&nbsp;|&#160;/gi, " ").replace(/&amp;/gi, "&").replace(/\s+/g, " ").trim().slice(0, 460);
+  };
   return rows.slice(0, 3).map((row) => ({
     title: row.name || row.title || row.source?.title || "Untitled source",
     url: row.url || row.link || row.uri || row.webUrl || row.web_url,
@@ -31,7 +33,7 @@ function normalizeEvidence(payload) {
 
 export async function getWebIqEvidence(topic) {
   const { webIq } = getSettings();
-  if (!webIq.enabled) return { mode: "mock", evidence: mockEvidence[topic] };
+  if (!webIq.enabled) return { mode: "disabled", evidence: [] };
   if (!webIq.apiKey) throw new Error("Web IQ is enabled but no API key is configured.");
   const url = new URL("v3/search/web", "https://api.microsoft.ai/");
   const response = await fetch(url, {
@@ -60,7 +62,7 @@ export async function getWebIqEvidence(topic) {
 
 export async function testWebIqConnection() {
   const { webIq } = getSettings();
-  if (!webIq.enabled) return { provider: "Web IQ", mode: "mock", ok: true, message: "Mock mode is active; no external request was made." };
+  if (!webIq.enabled) return { provider: "Web IQ", mode: "disabled", ok: true, message: "External intelligence is disabled; no Web IQ request was made." };
   if (!webIq.apiKey) return { provider: "Web IQ", mode: "live", ok: false, message: "Web IQ is enabled but no API key is configured." };
   try {
     await getWebIqEvidence("port congestion");

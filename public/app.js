@@ -11,8 +11,16 @@ async function api(path, options) {
 }
 
 function evidence(target, modeTarget, data) {
-  $(modeTarget).textContent = data.externalIntelligence.mode === "live" ? "LIVE CITATIONS" : "SIMULATED";
-  $(target).innerHTML = data.externalIntelligence.evidence.map((item) => `<article class="evidence"><p class="tiny">${h(item.sourceType)} · ${new Date(item.timestamp).toLocaleString()}</p><a href="${h(item.url)}" target="_blank" rel="noreferrer">${h(item.title)}</a><p>${h(item.snippet)}</p></article>`).join("");
+  const { mode, evidence: sources } = data.externalIntelligence;
+  $(modeTarget).textContent = mode === "live" ? "LIVE CITATIONS" : "OFF";
+  if (!sources.length) {
+    $(target).innerHTML = `<div class="evidence-empty"><strong>External intelligence is off</strong><p>These recommendations use only deterministic synthetic scenario data. Enable Web IQ to add cited advisory context.</p></div>`;
+    return;
+  }
+  $(target).innerHTML = sources.map((item) => {
+    const domain = new URL(item.url).hostname.replace(/^www\./, "");
+    return `<article class="evidence"><div class="evidence-meta"><span>${h(domain)}</span><span>${h(item.sourceType)}</span><span>${new Date(item.timestamp).toLocaleDateString()}</span></div><a href="${h(item.url)}" target="_blank" rel="noreferrer">${h(item.title)}</a><p>${h(item.snippet)}</p><span class="evidence-link">Open source ↗</span></article>`;
+  }).join("");
 }
 
 async function loadPricing() {
@@ -111,7 +119,8 @@ async function brief(scenario) {
   try {
     const data = await api(`/api/scenarios/${scenario}/brief`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(scenario === "vessel" ? { minutes: state.vesselMinutes } : scenario === "pricing" ? { demandIndex: $("#demand").value, capacityIndex: $("#capacity").value, equipment: $("#equipment").value, serviceTier: $("#serviceTier").value, disruption: $("#pricingDisruption").value } : { equipment: $("#containerEquipment").value, priority: $("#containerPriority").value }) });
     $("#briefTitle").textContent = `${scenario} / ${data.mode} advisory`;
-    $("#briefContent").innerHTML = `<h3>${h(data.brief.headline)}</h3><ul>${data.brief.actions.map((action) => `<li>${h(action)}</li>`).join("")}</ul><p class="callout">${h(data.brief.caution)}</p>`;
+    const sources = data.citedSources?.length ? `<section class="brief-sources"><p class="eyebrow">Sources used by this brief</p>${data.citedSources.map((source) => `<a href="${h(source.url)}" target="_blank" rel="noreferrer">${h(source.title)} ↗</a>`).join("")}</section>` : `<p class="tiny">No live external citations were used for this brief.</p>`;
+    $("#briefContent").innerHTML = `<h3>${h(data.brief.headline)}</h3><ul>${data.brief.actions.map((action) => `<li>${h(action)}</li>`).join("")}</ul><p class="callout">${h(data.brief.caution)}</p>${sources}`;
     $("#briefDialog").showModal();
   } catch (error) { alert(`Brief unavailable: ${error.message}`); }
 }
