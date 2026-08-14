@@ -3,7 +3,6 @@ import { z } from "zod";
 export const settingsInputSchema = z.object({
   webIq: z.object({
     enabled: z.boolean(),
-    baseUrl: z.string().url().optional(),
     apiKey: z.string().max(500).optional()
   })
 });

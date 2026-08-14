@@ -93,7 +93,7 @@ async function providerStatus() {
 }
 
 async function saveProviders() {
-  const body = { webIq: { enabled: $("#webIqEnabled").checked, baseUrl: $("#webIqBaseUrl").value || undefined, apiKey: $("#webIqKey").value || undefined } };
+  const body = { webIq: { enabled: $("#webIqEnabled").checked, apiKey: $("#webIqKey").value || undefined } };
   await api("/api/providers", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
   $("#webIqKey").value = "";
   $("#configDialog").close();

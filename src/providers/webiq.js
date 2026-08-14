@@ -16,7 +16,7 @@ export async function getWebIqEvidence(topic) {
   const { webIq } = getSettings();
   if (!webIq.enabled) return { mode: "mock", evidence: mockEvidence[topic] };
   if (!webIq.apiKey) throw new Error("Web IQ is enabled but no API key is configured.");
-  const url = new URL("search/web", webIq.baseUrl.endsWith("/") ? webIq.baseUrl : `${webIq.baseUrl}/`);
+  const url = new URL("v3/search/web", "https://api.microsoft.ai/");
   const response = await fetch(url, {
     method: "POST",
     headers: {

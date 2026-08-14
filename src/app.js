@@ -25,7 +25,7 @@ export function createApp() {
     try {
       const input = settingsInputSchema.parse(request.body);
       updateSettings({
-        webIq: { enabled: input.webIq.enabled, ...(input.webIq.baseUrl ? { baseUrl: input.webIq.baseUrl } : {}), ...(input.webIq.apiKey ? { apiKey: input.webIq.apiKey } : {}) }
+        webIq: { enabled: input.webIq.enabled, ...(input.webIq.apiKey ? { apiKey: input.webIq.apiKey } : {}) }
       });
       response.json({ ...publicProviderStatus(), retainedCredentials: { webIq: Boolean(getSettings().webIq.apiKey) } });
     } catch (error) { next(error); }

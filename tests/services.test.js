@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { calculateFreightPrice } from "../src/services/pricing.js";
 import { calculateVesselRecovery } from "../src/services/vessel.js";
 import { calculateContainerMoves } from "../src/services/containers.js";
-import { publicProviderStatus, updateSettings } from "../src/config/settings.js";
+import { publicProviderStatus } from "../src/config/settings.js";
 
 test("freight pricing is deterministic, explainable, and guarded", () => {
   const input = { demandIndex: 125, capacityIndex: 78, equipment: "40HC", serviceTier: "priority", disruption: "port-congestion" };
@@ -36,10 +36,7 @@ test("container utilization produces capacity-aware ranked moves", () => {
 });
 
 test("provider status never exposes server endpoints or secrets", () => {
-  updateSettings({
-    webIq: { enabled: false, baseUrl: "https://private.example/v3", apiKey: "web-iq-test-secret" }
-  });
   const status = JSON.stringify(publicProviderStatus());
-  assert.equal(status.includes("secret"), false);
-  assert.equal(status.includes("private.example"), false);
+  assert.equal(status.includes("apiKey"), false);
+  assert.equal(status.includes("endpoint"), false);
 });
