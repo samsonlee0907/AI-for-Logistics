@@ -39,12 +39,12 @@ export const mockEvidence = {
 };
 
 export const ports = {
-  CNSHA: { name: "Shanghai", x: 12, y: 45 },
-  SGSIN: { name: "Singapore", x: 29, y: 68 },
-  MYPKG: { name: "Port Klang", x: 35, y: 73 },
-  AEMZA: { name: "Jebel Ali", x: 57, y: 53 },
-  ESALG: { name: "Algeciras", x: 78, y: 35 },
-  NLRTM: { name: "Rotterdam", x: 90, y: 21 }
+  CNSHA: { name: "Shanghai", latitude: 31.23, longitude: 121.47 },
+  SGSIN: { name: "Singapore", latitude: 1.29, longitude: 103.85 },
+  MYPKG: { name: "Port Klang", latitude: 3.0, longitude: 101.4 },
+  AEMZA: { name: "Jebel Ali", latitude: 25.01, longitude: 55.06 },
+  ESALG: { name: "Algeciras", latitude: 36.13, longitude: -5.45 },
+  NLRTM: { name: "Rotterdam", latitude: 51.92, longitude: 4.48 }
 };
 
 export const routeLinks = [

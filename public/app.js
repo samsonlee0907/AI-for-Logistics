@@ -34,9 +34,23 @@ async function loadPricing() {
 
 function mapSvg(data) {
   const { ports, planned } = data.map;
-  const lines = (route, className) => route.slice(1).map((to, i) => `<line class="${className}" x1="${ports[route[i]].x}%" y1="${ports[route[i]].y}%" x2="${ports[to].x}%" y2="${ports[to].y}%"/>`).join("");
+  const project = ({ latitude, longitude }) => ({ x: longitude + 10, y: 60 - latitude });
+  const point = (coordinates) => {
+    const { x, y } = project(coordinates);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  };
+  const coastline = (coordinates) => `<path class="coastline" d="M ${coordinates.map(([longitude, latitude]) => point({ latitude, longitude })).join(" L ")}"/>`;
+  const lines = (route, className) => `<polyline class="${className}" points="${route.map((code) => point(ports[code])).join(" ")}"/>`;
   const recommended = data.options.find((option) => option.recommended).route;
-  return `<svg viewBox="0 0 100 100" preserveAspectRatio="none"><defs><linearGradient id="route" x1="0" x2="1"><stop stop-color="#50d7bd"/><stop offset="1" stop-color="#a5ee64"/></linearGradient></defs>${lines(planned, "map-line planned")}${lines(recommended, "map-line recommended")}${Object.entries(ports).map(([code, port]) => `<g><circle class="port-dot" cx="${port.x}" cy="${port.y}" r="1.7"/><text x="${port.x}" y="${port.y - 3}">${code}</text></g>`).join("")}<circle class="vessel-dot" cx="${ports.CNSHA.x + 5}" cy="${ports.CNSHA.y + 8}" r="1.8"/></svg><div class="map-key"><span><i class="planned-key"></i> Planned</span><span><i class="recommended-key"></i> Recommended</span><span><i class="vessel-key"></i> MV Horizon Relay</span></div>`;
+  const vessel = project({ latitude: data.vessel.position[0], longitude: data.vessel.position[1] });
+  const grids = [0, 20, 40, 60, 80, 100, 120].map((longitude) => `<line class="map-grid" x1="${longitude + 10}" y1="0" x2="${longitude + 10}" y2="70"/>`).join("") + [0, 20, 40, 60].map((latitude) => `<line class="map-grid" x1="0" y1="${60 - latitude}" x2="140" y2="${60 - latitude}"/>`).join("");
+  const land = [
+    [[-8,35],[-3,36],[2,43],[9,44],[16,42],[24,38],[29,36],[33,31],[35,28],[39,23],[43,16],[48,12],[52,16],[55,25],[60,25],[67,23],[73,20],[77,15],[80,8],[86,7],[91,11],[98,8],[103,2],[104,12],[110,20],[114,23],[118,30],[121,31],[122,37],[126,42]],
+    [[34,31],[30,30],[28,25],[31,22],[35,20],[38,16],[42,13],[48,12],[52,16],[55,25]],
+    [[33,30],[30,24],[31,18],[34,12],[38,7],[42,2],[42,-8],[31,-10],[22,-5],[15,2],[7,5],[-1,9],[-8,16]],
+    [[-9,35],[-6,36],[-5,43],[-1,47],[4,48],[10,45],[16,43]]
+  ].map(coastline).join("");
+  return `<svg viewBox="0 0 140 70" preserveAspectRatio="xMidYMid meet" aria-label="Geographic Asia to Europe shipping corridor schematic"><defs><linearGradient id="route" x1="0" x2="1"><stop stop-color="#50d7bd"/><stop offset="1" stop-color="#a5ee64"/></linearGradient></defs>${grids}${land}${lines(planned, "map-line planned")}${lines(recommended, "map-line recommended")}${Object.entries(ports).map(([code, port]) => { const { x, y } = project(port); return `<g><circle class="port-dot" cx="${x}" cy="${y}" r="1.25"/><text x="${x}" y="${y - 2.4}">${code}</text></g>`; }).join("")}<circle class="vessel-dot" cx="${vessel.x}" cy="${vessel.y}" r="1.35"/></svg><div class="map-key"><span><i class="planned-key"></i> Planned</span><span><i class="recommended-key"></i> Recommended</span><span><i class="vessel-key"></i> MV Horizon Relay</span><span class="map-note">Geographic schematic · not for navigation</span></div>`;
 }
 
 async function loadVessel() {
