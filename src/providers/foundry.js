@@ -15,6 +15,7 @@ function mockBrief(scenario) {
     mode: "mock",
     brief: {
       headline: `${scenario}: review the deterministic recommendation before operational release.`,
+      rationale: "The recommendation is based on the displayed deterministic factors and guardrails. No external model changes the underlying calculation.",
       actions: ["Use the displayed recommendation and guardrails as the decision baseline.", "Review cited context as advisory evidence, not as a calculation input."],
       caution: "Synthetic demo data only. This is not a production pricing, navigation, or dispatch instruction."
     },
@@ -36,7 +37,7 @@ export async function createOperatorBrief({ scenario, facts, evidence }) {
       temperature: 1,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: "You are an operations brief writer. Use only supplied facts and citations. Do not calculate, invent facts, or give navigation instructions. Return one JSON object only with headline, actions (2-4), caution, and sourceIndexes (0-3 citation indexes used). Use sourceIndexes only from supplied citations; never invent a source, URL, or operational fact. Do not use markdown fences." },
+        { role: "system", content: "You are an operations recommendation agent. Explain why the deterministic recommendation was made by reasoning over the supplied factors, options, guardrails, and citations. Do not calculate, invent facts, or give navigation instructions. Return one JSON object only with headline, rationale, actions (2-4), caution, and sourceIndexes (0-3 citation indexes used). Use sourceIndexes only from supplied citations; never invent a source, URL, or operational fact. Do not use markdown fences." },
         { role: "user", content: JSON.stringify({ scenario, deterministicFacts: facts, citations: evidence.map((item, index) => ({ index, ...item })) }) }
       ]
     });
@@ -53,7 +54,7 @@ export async function createOperatorBrief({ scenario, facts, evidence }) {
   const citedSources = [...new Set(parsed.sourceIndexes)].map((index) => evidence[index]).filter(Boolean);
   return {
     mode: "live",
-    brief: { headline: parsed.headline, actions: parsed.actions, caution: parsed.caution },
+    brief: { headline: parsed.headline, rationale: parsed.rationale, actions: parsed.actions, caution: parsed.caution },
     citedSources
   };
 }

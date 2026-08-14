@@ -50,6 +50,7 @@ async function loadPricing() {
   $("#priceAudit").innerHTML = Object.entries(data.audit).filter(([key]) => key !== "assumptions").map(([key, value]) => `<div><dt>${h(key.replace(/([A-Z])/g, " $1"))}</dt><dd>${h(value)}</dd></div>`).join("");
   $("#factorList").innerHTML = data.factors.map((factor) => `<article class="factor"><div><strong>${h(factor.label)}</strong><small>${h(factor.rationale)}</small></div><b class="${factor.value >= 0 ? "up" : "down"}">${factor.value >= 0 ? "+" : ""}${money(factor.value)}</b></article>`).join("");
   evidence("#pricingEvidence", "#pricingEvidenceMode", data);
+  loadAgentRecommendation("pricing", Object.fromEntries(query), "#pricingAi");
 }
 
 function mapSvg(data) {
@@ -86,6 +87,7 @@ async function loadVessel() {
   $("#routeOptions").innerHTML = data.options.map((option) => `<article class="route-option ${option.recommended ? "selected" : ""}"><div><p>${option.recommended ? "RECOMMENDED" : option.id.toUpperCase()}</p><strong>${option.route.join(" → ")}</strong></div><span class="badge risk-${option.risk}">${option.risk}</span><div class="route-stats"><span>${option.transitHours}h transit</span><span>${money(option.cost)}</span><span>${option.carbon}t CO₂e</span><span>+${option.delay}h delay</span></div></article>`).join("");
   $("#vesselDetails").innerHTML = [["Vessel", data.vessel.name], ["MMSI", data.vessel.mmsi], ["Position", `${data.vessel.position[0]}, ${data.vessel.position[1]}`], ["Next port", data.vessel.nextPort], ["Calculation", data.audit.deterministicMethod]].map(([key, value]) => `<div><dt>${h(key)}</dt><dd>${h(value)}</dd></div>`).join("");
   evidence("#vesselEvidence", "#vesselEvidenceMode", data);
+  loadAgentRecommendation("vessel", { minutes: state.vesselMinutes }, "#vesselAi");
 }
 
 async function loadContainers() {
@@ -98,6 +100,18 @@ async function loadContainers() {
   $("#containerMoves").innerHTML = data.moves.map((move) => `<article class="move"><b>#${move.rank}</b><div><strong>${move.origin} → ${move.destination}</strong><span>${move.units} ${data.equipment} · ${move.distance.toLocaleString()} nm</span></div><div><strong>${money(move.cost)}</strong><span>${move.carbon}t CO₂e · +${move.service} service</span></div></article>`).join("");
   $("#constraints").innerHTML = data.moves.map((move) => `<p class="constraint"><strong>${move.origin} → ${move.destination}:</strong> ${h(move.constraint)}</p>`).join("");
   evidence("#containersEvidence", "#containersEvidenceMode", data);
+  loadAgentRecommendation("containers", Object.fromEntries(query), "#containersAi");
+}
+
+async function loadAgentRecommendation(scenario, facts, target) {
+  $(target).innerHTML = `<div class="agent-loading"><span></span>AI agent is reasoning over the deterministic decision factors…</div>`;
+  try {
+    const data = await api(`/api/scenarios/${scenario}/brief`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(facts) });
+    const sources = data.citedSources?.length ? `<div class="agent-sources">${data.citedSources.map((source) => `<a href="${h(source.url)}" target="_blank" rel="noreferrer">${h(source.title)} ↗</a>`).join("")}</div>` : "";
+    $(target).innerHTML = `<div class="panel-head"><div><p class="eyebrow">AI agent recommendation</p><h3>${h(data.brief.headline)}</h3></div><span class="badge">${data.mode === "live" ? "GPT-5.6-TERRA" : "LOCAL FALLBACK"}</span></div><p class="agent-rationale">${h(data.brief.rationale)}</p><div class="agent-actions">${data.brief.actions.map((action) => `<span>${h(action)}</span>`).join("")}</div><p class="callout">${h(data.brief.caution)}</p>${sources}`;
+  } catch (error) {
+    $(target).innerHTML = `<div class="agent-error"><strong>AI recommendation unavailable</strong><p>${h(error.message)}</p></div>`;
+  }
 }
 
 async function loadScenario(name) {
@@ -165,5 +179,4 @@ $("#resetVessel").addEventListener("click", (event) => withBusy(event.currentTar
 $("#openConfig").addEventListener("click", async () => { await providerStatus(); $("#configDialog").showModal(); });
 $("#saveConfig").addEventListener("click", () => saveProviders().catch((error) => alert(`Unable to save: ${error.message}`)));
 $("#testWebIq").addEventListener("click", () => testProvider("webiq"));
-document.querySelectorAll(".brief-button").forEach((button) => button.addEventListener("click", () => withBusy(button, "Generating brief…", () => brief(button.dataset.scenario))));
 loadPricing();
