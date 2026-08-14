@@ -7,6 +7,7 @@ import { publicProviderStatus } from "../src/config/settings.js";
 import { webIqQueries } from "../src/providers/webiq.js";
 import { createPortalAuth } from "../src/auth/portal-auth.js";
 import { resolveScenarioDecision } from "../src/providers/foundry.js";
+import { briefSchema } from "../src/schemas/contracts.js";
 
 test("freight pricing is deterministic, explainable, and guarded", () => {
   const input = { demandIndex: 125, capacityIndex: 78, equipment: "40HC", serviceTier: "priority", disruption: "port-congestion" };
@@ -73,6 +74,19 @@ test("AI route and move selections are restricted to deterministic options", () 
   assert.equal(resolveScenarioDecision("vessel", vessel, { selectionType: "route", selectionId: "invented-route", influence: "Invalid." }).selectionType, "none");
   const containers = calculateContainerMoves({ equipment: "40HC", priority: "balanced" });
   assert.equal(resolveScenarioDecision("containers", containers, { selectionType: "move", selectionId: "1", influence: "Cited context supports the move." }).selectionId, "1");
+});
+
+test("structured AI decisions normalize a numeric move rank", () => {
+  const brief = briefSchema.parse({
+    headline: "Prioritize the available move.",
+    rationale: "The ranked move best addresses the displayed deficit.",
+    reasoningSteps: ["Read the ranked moves.", "Select the valid priority move."],
+    actions: ["Validate terminal release.", "Request dispatch approval."],
+    caution: "Synthetic demonstration only.",
+    sourceIndexes: [],
+    decision: { selectionType: "move", selectionId: 1, influence: "Prioritize the ranked move after validation." }
+  });
+  assert.equal(brief.decision.selectionId, "1");
 });
 
 test("portal authentication issues only a signed session for valid credentials", () => {

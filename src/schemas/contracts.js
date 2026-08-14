@@ -16,7 +16,7 @@ export const briefSchema = z.object({
   sourceIndexes: z.array(z.number().int().nonnegative()).max(3).default([]),
   decision: z.object({
     selectionType: z.enum(["none", "route", "move"]),
-    selectionId: z.string().max(80).optional(),
+    selectionId: z.union([z.string().max(80), z.number().int()]).transform(String).optional(),
     influence: z.string().max(300)
   })
 });
