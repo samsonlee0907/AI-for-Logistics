@@ -10,7 +10,7 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "test": "node --test",
-    "lint": "node --check src/server.js && node --check src/app.js && node --check public/app.js"
+    "lint": "node --check src/server.js && node --check src/app.js && node --check src/auth/portal-auth.js && node --check public/app.js && node --check public/login.js"
   },
   "dependencies": {
     "@azure/identity": "^4.10.1",

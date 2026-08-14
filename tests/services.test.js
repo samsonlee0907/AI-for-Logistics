@@ -5,6 +5,7 @@ import { calculateVesselRecovery } from "../src/services/vessel.js";
 import { calculateContainerMoves } from "../src/services/containers.js";
 import { publicProviderStatus } from "../src/config/settings.js";
 import { webIqQueries } from "../src/providers/webiq.js";
+import { createPortalAuth } from "../src/auth/portal-auth.js";
 
 test("freight pricing is deterministic, explainable, and guarded", () => {
   const input = { demandIndex: 125, capacityIndex: 78, equipment: "40HC", serviceTier: "priority", disruption: "port-congestion" };
@@ -63,4 +64,21 @@ test("each scenario includes a dedicated latest-news Web IQ query", () => {
   for (const scenario of ["pricing", "vessel", "containers"]) {
     assert.ok(webIqQueries(scenario, calculateVesselRecovery(0)).some((query) => query.endpoint === "news" && /latest/i.test(query.query)));
   }
+});
+
+test("portal authentication issues only a signed session for valid credentials", () => {
+  const auth = createPortalAuth({
+    PORTAL_AUTH_USERNAME: "test-user",
+    PORTAL_AUTH_PASSWORD: "test-password",
+    PORTAL_AUTH_SESSION_SECRET: "a".repeat(32),
+    NODE_ENV: "test"
+  });
+  const invalidResponse = { status(code) { this.statusCode = code; return this; }, json(body) { this.body = body; return this; } };
+  auth.login({ body: { username: "test-user", password: "incorrect" } }, invalidResponse);
+  assert.equal(invalidResponse.statusCode, 401);
+  const response = { headers: {}, setHeader(name, value) { this.headers[name] = value; }, json(body) { this.body = body; return this; } };
+  auth.login({ body: { username: "test-user", password: "test-password" } }, response);
+  assert.equal(response.body.authenticated, true);
+  assert.ok(response.headers["Set-Cookie"].includes("HttpOnly"));
+  assert.equal(auth.isAuthenticated({ headers: { cookie: response.headers["Set-Cookie"] } }), true);
 });

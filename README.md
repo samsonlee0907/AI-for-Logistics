@@ -40,6 +40,10 @@ tests/                  Node built-in focused service/config tests
 
 The **Configuration** control stores only Web IQ values in `config/local-settings.json`, which is ignored by Git. Browser status responses disclose only `enabled`, `configured`, and `mode`; they never disclose provider endpoint URLs or secrets. Blank key fields retain an existing local secret.
 
+## Portal access
+
+The portal is protected by a custom sign-in page and a server-validated, signed, HTTP-only session cookie. Set `PORTAL_AUTH_USERNAME`, `PORTAL_AUTH_PASSWORD`, and a random `PORTAL_AUTH_SESSION_SECRET` (at least 32 characters) in local environment configuration or the hosting platform's secret store. Do not commit these values. The health endpoint remains unauthenticated for hosting checks; the portal and all operational APIs require a valid session.
+
 ### Web IQ
 
 Default environment variables:

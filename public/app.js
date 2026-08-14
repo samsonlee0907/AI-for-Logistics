@@ -196,6 +196,10 @@ $("#routeOptions").addEventListener("click", (event) => {
   loadVessel();
 });
 $("#openConfig").addEventListener("click", async () => { await providerStatus(); $("#configDialog").showModal(); });
+$("#logout").addEventListener("click", async () => {
+  await fetch("/api/auth/logout", { method: "POST" });
+  window.location.assign("/login.html");
+});
 $("#saveConfig").addEventListener("click", () => saveProviders().catch((error) => alert(`Unable to save: ${error.message}`)));
 $("#testWebIq").addEventListener("click", () => testProvider("webiq"));
 loadPricing();

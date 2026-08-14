@@ -1,4 +1,5 @@
 import express from "express";
+import { createPortalAuth } from "./auth/portal-auth.js";
 import { calculateContainerMoves } from "./services/containers.js";
 import { applyPricingAdvisory, calculateFreightPrice } from "./services/pricing.js";
 import { calculateVesselRecovery } from "./services/vessel.js";
@@ -15,10 +16,19 @@ const scenarioCalculators = {
 
 export function createApp() {
   const app = express();
+  const auth = createPortalAuth();
   app.use(express.json({ limit: "32kb" }));
+  app.get("/api/health", (_request, response) => response.json({ status: "ok", mode: "synthetic-demo", providers: publicProviderStatus() }));
+  app.post("/api/auth/login", (request, response) => auth.login(request, response));
+  app.post("/api/auth/logout", (request, response) => auth.logout(request, response));
+  app.use((request, response, next) => {
+    if (request.path === "/login.html" || request.path === "/login.css" || request.path === "/login.js") return next();
+    if (auth.isAuthenticated(request)) return next();
+    if (request.path.startsWith("/api/")) return response.status(401).json({ error: "Authentication required." });
+    return response.redirect(303, "/login.html");
+  });
   app.use(express.static("public"));
 
-  app.get("/api/health", (_request, response) => response.json({ status: "ok", mode: "synthetic-demo", providers: publicProviderStatus() }));
   app.get("/api/providers", (_request, response) => response.json(publicProviderStatus()));
 
   app.put("/api/providers", (request, response, next) => {
