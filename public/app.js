@@ -10,6 +10,18 @@ async function api(path, options) {
   return data;
 }
 
+async function withBusy(button, label, work) {
+  const original = button.textContent;
+  button.disabled = true;
+  button.classList.add("is-loading");
+  button.textContent = label;
+  try { return await work(); } finally {
+    button.disabled = false;
+    button.classList.remove("is-loading");
+    button.textContent = original;
+  }
+}
+
 function evidence(target, modeTarget, data) {
   const { mode, evidence: sources } = data.externalIntelligence;
   $(modeTarget).textContent = mode === "live" ? "LIVE CITATIONS" : "OFF";
@@ -58,7 +70,8 @@ function mapSvg(data) {
     [[33,30],[30,24],[31,18],[34,12],[38,7],[42,2],[42,-8],[31,-10],[22,-5],[15,2],[7,5],[-1,9],[-8,16]],
     [[-9,35],[-6,36],[-5,43],[-1,47],[4,48],[10,45],[16,43]]
   ].map(coastline).join("");
-  return `<svg viewBox="0 0 140 70" preserveAspectRatio="xMidYMid meet" aria-label="Geographic Asia to Europe shipping corridor schematic"><defs><linearGradient id="route" x1="0" x2="1"><stop stop-color="#50d7bd"/><stop offset="1" stop-color="#a5ee64"/></linearGradient></defs>${grids}${land}${lines(planned, "map-line planned")}${lines(recommended, "map-line recommended")}${Object.entries(ports).map(([code, port]) => { const { x, y } = project(port); return `<g><circle class="port-dot" cx="${x}" cy="${y}" r="1.25"/><text x="${x}" y="${y - 2.4}">${code}</text></g>`; }).join("")}<circle class="vessel-dot" cx="${vessel.x}" cy="${vessel.y}" r="1.35"/></svg><div class="map-key"><span><i class="planned-key"></i> Planned</span><span><i class="recommended-key"></i> Recommended</span><span><i class="vessel-key"></i> MV Horizon Relay</span><span class="map-note">Geographic schematic · not for navigation</span></div>`;
+  const changed = recommended.join("|") !== planned.join("|");
+  return `<svg viewBox="0 0 140 70" preserveAspectRatio="xMidYMid meet" aria-label="Geographic Asia to Europe shipping corridor schematic"><defs><linearGradient id="route" x1="0" x2="1"><stop stop-color="#50d7bd"/><stop offset="1" stop-color="#a5ee64"/></linearGradient></defs>${grids}${land}${lines(planned, "map-line planned")}${lines(recommended, "map-line recommended")}${Object.entries(ports).map(([code, port]) => { const { x, y } = project(port); return `<g><circle class="port-dot" cx="${x}" cy="${y}" r="1.25"/><text x="${x}" y="${y - 2.4}">${code}</text></g>`; }).join("")}<circle class="vessel-dot" cx="${vessel.x}" cy="${vessel.y}" r="1.35"/></svg><div class="route-shift ${changed ? "changed" : ""}">${changed ? `Recovery route diverts via ${recommended[1]}` : "Route remains on plan"}</div><div class="map-key"><span><i class="planned-key"></i> Planned</span><span><i class="recommended-key"></i> Recommended</span><span><i class="vessel-key"></i> MV Horizon Relay</span><span class="map-note">Geographic schematic · not for navigation</span></div>`;
 }
 
 async function loadVessel() {
@@ -134,12 +147,12 @@ $("#scenarioNav").addEventListener("click", (event) => {
   loadScenario(state.currentScenario);
 });
 ["#demand", "#capacity"].forEach((selector) => $(selector).addEventListener("input", (event) => { $(`${selector}Out`).textContent = event.target.value; }));
-$("#priceRefresh").addEventListener("click", loadPricing);
-$("#containerRefresh").addEventListener("click", loadContainers);
-document.querySelectorAll(".vessel-step").forEach((button) => button.addEventListener("click", () => { state.vesselMinutes += Number(button.dataset.step); loadVessel(); }));
-$("#resetVessel").addEventListener("click", () => { state.vesselMinutes = 0; loadVessel(); });
+$("#priceRefresh").addEventListener("click", (event) => withBusy(event.currentTarget, "Calculating…", loadPricing));
+$("#containerRefresh").addEventListener("click", (event) => withBusy(event.currentTarget, "Ranking moves…", loadContainers));
+document.querySelectorAll(".vessel-step").forEach((button) => button.addEventListener("click", () => withBusy(button, "Updating route…", async () => { state.vesselMinutes += Number(button.dataset.step); await loadVessel(); })));
+$("#resetVessel").addEventListener("click", (event) => withBusy(event.currentTarget, "Resetting…", async () => { state.vesselMinutes = 0; await loadVessel(); }));
 $("#openConfig").addEventListener("click", async () => { await providerStatus(); $("#configDialog").showModal(); });
 $("#saveConfig").addEventListener("click", () => saveProviders().catch((error) => alert(`Unable to save: ${error.message}`)));
 $("#testWebIq").addEventListener("click", () => testProvider("webiq"));
-document.querySelectorAll(".brief-button").forEach((button) => button.addEventListener("click", () => brief(button.dataset.scenario)));
+document.querySelectorAll(".brief-button").forEach((button) => button.addEventListener("click", () => withBusy(button, "Generating brief…", () => brief(button.dataset.scenario))));
 loadPricing();
