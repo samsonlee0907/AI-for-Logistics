@@ -2,13 +2,30 @@ import { getSettings } from "../config/settings.js";
 import { mockEvidence } from "../fixtures/data.js";
 
 function normalizeEvidence(payload) {
-  const rows = payload?.value || payload?.results || payload?.webPages?.value || payload?.data?.results || [];
+  const rows = [];
+  const seenUrls = new Set();
+  const visit = (value, depth = 0) => {
+    if (!value || depth > 5) return;
+    if (Array.isArray(value)) {
+      value.forEach((item) => visit(item, depth + 1));
+      return;
+    }
+    if (typeof value !== "object") return;
+    const url = value.url || value.link || value.uri || value.webUrl || value.web_url;
+    if (typeof url === "string" && !seenUrls.has(url)) {
+      seenUrls.add(url);
+      rows.push(value);
+    }
+    Object.values(value).forEach((item) => visit(item, depth + 1));
+  };
+  visit(payload);
+  const text = (value) => typeof value === "string" ? value : value?.text || value?.content || "";
   return rows.slice(0, 3).map((row) => ({
-    title: row.name || row.title || "Untitled source",
-    url: row.url || row.link || "",
-    snippet: row.snippet || row.description || row.passage || "",
-    timestamp: row.dateLastCrawled || row.timestamp || new Date().toISOString(),
-    sourceType: row.sourceType || "external web result"
+    title: row.name || row.title || row.source?.title || "Untitled source",
+    url: row.url || row.link || row.uri || row.webUrl || row.web_url,
+    snippet: text(row.snippet) || text(row.description) || text(row.passage) || text(row.content) || text(row.summary),
+    timestamp: row.dateLastCrawled || row.timestamp || row.publishedAt || new Date().toISOString(),
+    sourceType: row.sourceType || row.type || "external web result"
   }));
 }
 
