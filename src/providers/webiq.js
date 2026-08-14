@@ -1,0 +1,38 @@
+import { getSettings } from "../config/settings.js";
+import { mockEvidence } from "../fixtures/data.js";
+
+function normalizeEvidence(payload) {
+  const rows = payload?.value || payload?.results || payload?.webPages?.value || [];
+  return rows.slice(0, 3).map((row) => ({
+    title: row.name || row.title || "Untitled source",
+    url: row.url || row.link || "",
+    snippet: row.snippet || row.description || row.passage || "",
+    timestamp: row.dateLastCrawled || row.timestamp || new Date().toISOString(),
+    sourceType: row.sourceType || "external web result"
+  }));
+}
+
+export async function getWebIqEvidence(topic) {
+  const { webIq } = getSettings();
+  if (!webIq.enabled) return { mode: "mock", evidence: mockEvidence[topic] };
+  if (!webIq.apiKey) throw new Error("Web IQ is enabled but no API key is configured.");
+  const url = new URL("search", webIq.baseUrl.endsWith("/") ? webIq.baseUrl : `${webIq.baseUrl}/`);
+  url.searchParams.set("q", `${topic} shipping logistics operational context`);
+  const response = await fetch(url, { headers: { "x-apikey": webIq.apiKey, accept: "application/json" }, signal: AbortSignal.timeout(10_000) });
+  if (!response.ok) throw new Error(`Web IQ request failed (${response.status}).`);
+  const evidence = normalizeEvidence(await response.json());
+  if (!evidence.length) throw new Error("Web IQ returned no usable citation-ready evidence.");
+  return { mode: "live", evidence };
+}
+
+export async function testWebIqConnection() {
+  const { webIq } = getSettings();
+  if (!webIq.enabled) return { provider: "Web IQ", mode: "mock", ok: true, message: "Mock mode is active; no external request was made." };
+  if (!webIq.apiKey) return { provider: "Web IQ", mode: "live", ok: false, message: "Web IQ is enabled but no API key is configured." };
+  try {
+    await getWebIqEvidence("port congestion");
+    return { provider: "Web IQ", mode: "live", ok: true, message: "Live Web IQ returned citation-ready evidence." };
+  } catch (error) {
+    return { provider: "Web IQ", mode: "live", ok: false, message: error.message };
+  }
+}

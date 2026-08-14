@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Logistics AI Control Tower</title>
+    <meta name="description" content="Synthetic, deterministic logistics AI demonstration portal.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="#pricing"><span class="brand-mark">L</span><span>Logistics<br><strong>AI Control Tower</strong></span></a>
+        <p class="side-label">Operations demos</p>
+        <nav id="scenarioNav">
+          <button class="nav-item active" data-scenario="pricing"><span>01</span>Freight pricing</button>
+          <button class="nav-item" data-scenario="vessel"><span>02</span>Vessel recovery</button>
+          <button class="nav-item" data-scenario="containers"><span>03</span>Empty utilization</button>
+        </nav>
+        <div class="side-footer"><span class="live-dot"></span> Synthetic demo environment<br>Deterministic decision engine</div>
+      </aside>
+      <main>
+        <header class="topbar">
+          <div><p class="eyebrow">Client demonstration portal</p><h1 id="pageTitle">Dynamic Freight Pricing Control Tower</h1></div>
+          <div class="top-actions"><span class="badge synthetic">SYNTHETIC DATA</span><button id="openConfig" class="button ghost">Configuration</button></div>
+        </header>
+        <div class="disclaimer"><strong>Decision safety:</strong> all primary recommendations are deterministic, inspectable calculations. External intelligence and models are advisory context only.</div>
+        <section id="pricing" class="scenario active">
+          <div class="scenario-intro"><div><p class="eyebrow">01 / flagship</p><h2>Dynamic Freight Pricing Control Tower</h2><p>Quote an explainable rate with commercial guardrails, factor-level auditability, and advisory market context.</p></div><button class="button primary brief-button" data-scenario="pricing">Generate operator brief</button></div>
+          <div class="layout-three">
+            <section class="panel controls"><h3>Quote dimensions</h3>
+              <label>Lane demand forecast <output id="demandOut">112</output><input id="demand" type="range" min="60" max="150" value="112"></label>
+              <label>Available capacity <output id="capacityOut">86</output><input id="capacity" type="range" min="60" max="140" value="86"></label>
+              <label>Equipment <select id="equipment"><option>40HC</option><option>40GP</option><option>20GP</option></select></label>
+              <label>Service commitment <select id="serviceTier"><option value="priority">Priority</option><option value="standard">Standard</option><option value="contract">Contract</option></select></label>
+              <label>External disruption signal <select id="pricingDisruption"><option value="port-congestion">Port congestion</option><option value="weather">Weather</option><option value="none">None</option></select></label>
+              <button id="priceRefresh" class="button primary full">Recalculate recommendation</button>
+            </section>
+            <section class="panel recommendation"><p class="eyebrow">Recommended all-in rate</p><div class="price"><span>$</span><strong id="priceValue">—</strong></div><p id="priceCurrency" class="muted">USD / 40HC</p><div class="confidence"><span>Confidence</span><strong id="priceConfidence">—</strong><div class="meter"><i id="confidenceMeter"></i></div></div><div class="divider"></div><p class="eyebrow">Price guardrails</p><div class="guardrail"><span>Floor</span><strong id="priceFloor">—</strong></div><div class="guardrail"><span>Ceiling</span><strong id="priceCeiling">—</strong></div><p id="priceApproval" class="callout">—</p></section>
+            <section class="panel audit-card"><p class="eyebrow">Decision evidence</p><h3 id="priceDecision">Loading recommendation</h3><dl id="priceAudit" class="details"></dl><p class="tiny">Pricing is synthetic and deterministic; external intelligence cannot alter the calculation.</p></section>
+          </div>
+          <div class="two-column">
+            <section class="panel"><div class="panel-head"><div><p class="eyebrow">Price construction</p><h3>Factor-level contributions</h3></div><span class="badge">auditable</span></div><div id="factorList" class="factor-list"></div></section>
+            <section class="panel"><div class="panel-head"><div><p class="eyebrow">External intelligence</p><h3>Advisory market context</h3></div><span id="pricingEvidenceMode" class="badge">—</span></div><div id="pricingEvidence"></div></section>
+          </div>
+        </section>
+        <section id="vessel" class="scenario">
+          <div class="scenario-intro"><div><p class="eyebrow">02 / voyage command</p><h2>Vessel Network Disruption Recovery</h2><p>Advance a deterministic AIS, port, and weather simulation to compare recovery paths.</p></div><div class="button-row"><button id="resetVessel" class="button ghost">Reset</button><button class="button primary brief-button" data-scenario="vessel">Generate operator brief</button></div></div>
+          <div class="panel time-controls"><span class="eyebrow">Simulation clock</span><strong id="simClock">0h 00m</strong><button data-step="15" class="button ghost vessel-step">+15 min</button><button data-step="60" class="button ghost vessel-step">+1 hour</button><button data-step="360" class="button primary vessel-step">+6 hours</button></div>
+          <div class="metrics" id="vesselMetrics"></div>
+          <div class="two-column vessel-layout"><section class="panel"><div class="panel-head"><div><p class="eyebrow">Network visualization</p><h3>Planned vs recovery route</h3></div><span id="disruptionBadge" class="badge">—</span></div><div id="routeMap" class="route-map"></div><p id="vesselDisruption" class="callout">—</p></section><section class="panel"><div class="panel-head"><div><p class="eyebrow">Reroute options</p><h3>Deterministic trade-offs</h3></div></div><div id="routeOptions" class="route-options"></div></section></div>
+          <div class="two-column"><section class="panel"><div class="panel-head"><div><p class="eyebrow">Voyage visibility</p><h3>AIS-style state</h3></div></div><dl id="vesselDetails" class="details"></dl></section><section class="panel"><div class="panel-head"><div><p class="eyebrow">External intelligence</p><h3>Disruption evidence</h3></div><span id="vesselEvidenceMode" class="badge">—</span></div><div id="vesselEvidence"></div></section></div>
+        </section>
+        <section id="containers" class="scenario">
+          <div class="scenario-intro"><div><p class="eyebrow">03 / equipment balance</p><h2>Empty Container Utilization Across Ports</h2><p>Resolve equipment imbalances with ranked, capacity-aware repositioning moves.</p></div><button class="button primary brief-button" data-scenario="containers">Generate operator brief</button></div>
+          <div class="panel inline-controls"><label>Equipment <select id="containerEquipment"><option>40HC</option><option>40GP</option><option>20GP</option></select></label><label>Prioritize <select id="containerPriority"><option value="balanced">Balanced</option><option value="cost">Cost</option><option value="service">Service</option></select></label><button id="containerRefresh" class="button primary">Rank repositioning moves</button></div>
+          <div class="metrics" id="containerMetrics"></div>
+          <div class="two-column"><section class="panel"><div class="panel-head"><div><p class="eyebrow">Equipment balance</p><h3>Port-level surplus and deficit</h3></div><span id="equipmentLabel" class="badge">40HC</span></div><div id="portBalances" class="balance-list"></div></section><section class="panel"><div class="panel-head"><div><p class="eyebrow">Ranked moves</p><h3>Capacity-aware repositioning</h3></div></div><div id="containerMoves" class="move-list"></div></section></div>
+          <div class="two-column"><section class="panel"><p class="eyebrow">Prioritization evidence</p><h3>Transparent constraints</h3><div id="constraints"></div></section><section class="panel"><div class="panel-head"><div><p class="eyebrow">External intelligence</p><h3>Demand and restriction context</h3></div><span id="containersEvidenceMode" class="badge">—</span></div><div id="containersEvidence"></div></section></div>
+        </section>
+      </main>
+    </div>
+    <dialog id="configDialog"><form method="dialog" id="configForm"><div class="dialog-head"><div><p class="eyebrow">Server-only provider configuration</p><h2>Web IQ + Foundry</h2></div><button class="icon-button" value="cancel">×</button></div><p class="dialog-note">Credentials are written only to ignored local config on the server. Status endpoints never return keys or endpoint URLs.</p><div class="config-grid"><fieldset><legend>Web IQ: citation-ready external context</legend><label class="check"><input id="webIqEnabled" type="checkbox"> Enable live Web IQ</label><label>Base URL<input id="webIqBaseUrl" type="url" placeholder="https://api.microsoft.ai/v3"></label><label>API key<input id="webIqKey" type="password" placeholder="Retain existing when blank"></label><button id="testWebIq" type="button" class="button ghost">Test Web IQ</button><p id="webIqResult" class="test-result"></p></fieldset><fieldset><legend>Foundry: optional narrative briefs</legend><label class="check"><input id="foundryEnabled" type="checkbox"> Enable live Foundry</label><label>Endpoint<input id="foundryEndpoint" type="url" placeholder="https://…openai.azure.com/"></label><label>API key<input id="foundryKey" type="password" placeholder="Retain existing when blank"></label><label>Deployment<input id="foundryDeployment" type="text" placeholder="Your deployment name"></label><button id="testFoundry" type="button" class="button ghost">Test Foundry</button><p id="foundryResult" class="test-result"></p></fieldset></div><div class="dialog-actions"><button value="cancel" class="button ghost">Close</button><button id="saveConfig" type="button" class="button primary">Save secure configuration</button></div></form></dialog>
+    <dialog id="briefDialog"><form method="dialog"><div class="dialog-head"><div><p class="eyebrow">Advisory operator brief</p><h2 id="briefTitle">—</h2></div><button class="icon-button">×</button></div><div id="briefContent"></div></form></dialog>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
