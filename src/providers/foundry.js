@@ -37,7 +37,7 @@ export async function createOperatorBrief({ scenario, facts, evidence }) {
       temperature: 1,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: "You are an operations recommendation agent. Explain why the deterministic recommendation was made by reasoning over the supplied factors, options, guardrails, and citations. Do not calculate, invent facts, or give navigation instructions. Return one JSON object only with headline, rationale, actions (2-4), caution, and sourceIndexes (0-3 citation indexes used). Use sourceIndexes only from supplied citations; never invent a source, URL, or operational fact. Do not use markdown fences." },
+        { role: "system", content: "You are an operations recommendation agent. Explain why the deterministic recommendation was made by reasoning over the supplied factors, options, guardrails, and citations. Keep rationale below 900 characters. Do not calculate, invent facts, or give navigation instructions. Return one JSON object only with headline, rationale, actions (2-4), caution, and sourceIndexes (0-3 citation indexes used). Use sourceIndexes only from supplied citations; never invent a source, URL, or operational fact. Do not use markdown fences." },
         { role: "user", content: JSON.stringify({ scenario, deterministicFacts: facts, citations: evidence.map((item, index) => ({ index, ...item })) }) }
       ]
     });
