@@ -45,7 +45,7 @@ export function createApp() {
       const calculate = scenarioCalculators[request.params.scenario];
       if (!calculate) return response.status(404).json({ error: "Unknown scenario." });
       const baseline = calculate(request.query);
-      const context = await getWebIqEvidence(request.params.scenario);
+      const context = await getWebIqEvidence(request.params.scenario, baseline);
       const advisory = request.params.scenario === "pricing" ? await createPricingAdvisory({ facts: baseline, evidence: context.evidence }) : null;
       const result = request.params.scenario === "pricing" ? applyPricingAdvisory(baseline, advisory) : baseline;
       return response.json({ ...result, externalIntelligence: { label: "External intelligence — advisory context only", ...context } });
@@ -57,7 +57,7 @@ export function createApp() {
       const calculate = scenarioCalculators[request.params.scenario];
       if (!calculate) return response.status(404).json({ error: "Unknown scenario." });
       const facts = calculate(request.body || {});
-      const { evidence } = await getWebIqEvidence(request.params.scenario);
+      const { evidence } = await getWebIqEvidence(request.params.scenario, facts);
       return response.json(await createOperatorBrief({ scenario: facts.scenario, facts, evidence }));
     } catch (error) { return next(error); }
   });

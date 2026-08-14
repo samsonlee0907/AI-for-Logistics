@@ -4,6 +4,7 @@ import { applyPricingAdvisory, calculateFreightPrice } from "../src/services/pri
 import { calculateVesselRecovery } from "../src/services/vessel.js";
 import { calculateContainerMoves } from "../src/services/containers.js";
 import { publicProviderStatus } from "../src/config/settings.js";
+import { webIqQueries } from "../src/providers/webiq.js";
 
 test("freight pricing is deterministic, explainable, and guarded", () => {
   const input = { demandIndex: 125, capacityIndex: 78, equipment: "40HC", serviceTier: "priority", disruption: "port-congestion" };
@@ -48,4 +49,18 @@ test("provider status never exposes server endpoints or secrets", () => {
   const status = JSON.stringify(publicProviderStatus());
   assert.equal(status.includes("apiKey"), false);
   assert.equal(status.includes("endpoint"), false);
+});
+
+test("vessel Web IQ plan retrieves current disruption and terminal weather context", () => {
+  const vessel = calculateVesselRecovery(0);
+  const queries = webIqQueries("vessel", vessel);
+  assert.deepEqual(queries.map((query) => query.contextType), ["Latest maritime disruption news", "Origin weather — Shanghai", "Destination weather — Rotterdam"]);
+  assert.equal(queries[0].endpoint, "news");
+  assert.ok(queries.slice(1).every((query) => query.endpoint === "web" && /current/i.test(query.query)));
+});
+
+test("each scenario includes a dedicated latest-news Web IQ query", () => {
+  for (const scenario of ["pricing", "vessel", "containers"]) {
+    assert.ok(webIqQueries(scenario, calculateVesselRecovery(0)).some((query) => query.endpoint === "news" && /latest/i.test(query.query)));
+  }
 });

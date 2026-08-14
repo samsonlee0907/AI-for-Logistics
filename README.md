@@ -50,7 +50,7 @@ WEBIQ_API_KEY=
 WEBIQ_ENABLED=false
 ```
 
-When `WEBIQ_ENABLED=false` (the default), scenarios use synthetic data alone and show no external citations. When enabled, the server calls the shared Web IQ endpoint with `x-apikey`; live errors are returned explicitly and are never converted into mock success. Use the configuration test control to validate a live connection before a scenario request.
+When `WEBIQ_ENABLED=false` (the default), scenarios use synthetic data alone and show no external citations. When enabled, the server uses `x-apikey` server-side to retrieve latest scenario news from `/v3/search/news` plus scenario-specific web context from `/v3/search/web` (including origin and destination weather for vessel recovery). Live errors are returned explicitly and are never converted into mock success. Use the configuration test control to validate a live connection before a scenario request.
 
 ### Foundry / Azure OpenAI
 
