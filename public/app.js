@@ -48,6 +48,8 @@ async function loadPricing() {
   $("#priceApproval").textContent = data.guardrails.approval;
   $("#priceDecision").textContent = data.audit.decision;
   $("#priceAudit").innerHTML = Object.entries(data.audit).filter(([key]) => key !== "assumptions").map(([key, value]) => `<div><dt>${h(key.replace(/([A-Z])/g, " $1"))}</dt><dd>${h(value)}</dd></div>`).join("");
+  const baseRate = 2420;
+  $("#pricingKpis").innerHTML = [["Base lane rate", money(baseRate)], ["Quote uplift", money(data.recommendation - baseRate)], ["Guardrail headroom", money(data.guardrails.ceiling - data.recommendation)], ["Decision value", "Commercial review"]].map(([label, value]) => `<article class="metric"><span>${label}</span><strong>${value}</strong></article>`).join("");
   $("#factorList").innerHTML = data.factors.map((factor) => `<article class="factor"><div><strong>${h(factor.label)}</strong><small>${h(factor.rationale)}</small></div><b class="${factor.value >= 0 ? "up" : "down"}">${factor.value >= 0 ? "+" : ""}${money(factor.value)}</b></article>`).join("");
   evidence("#pricingEvidence", "#pricingEvidenceMode", data);
   loadAgentRecommendation("pricing", Object.fromEntries(query), "#pricingAi");
@@ -62,7 +64,7 @@ function mapSvg(data) {
   };
   const coastline = (coordinates) => `<path class="coastline" d="M ${coordinates.map(([longitude, latitude]) => point({ latitude, longitude })).join(" L ")}"/>`;
   const lines = (route, className) => `<polyline class="${className}" points="${route.map((code) => point(ports[code])).join(" ")}"/>`;
-  const recommended = data.options.find((option) => option.recommended).route;
+  const recommended = data.options.find((option) => option.id === state.selectedRouteId)?.route || data.options.find((option) => option.recommended).route;
   const vessel = project({ latitude: data.vessel.position[0], longitude: data.vessel.position[1] });
   const grids = [0, 20, 40, 60, 80, 100, 120].map((longitude) => `<line class="map-grid" x1="${longitude + 10}" y1="0" x2="${longitude + 10}" y2="70"/>`).join("") + [0, 20, 40, 60].map((latitude) => `<line class="map-grid" x1="0" y1="${60 - latitude}" x2="140" y2="${60 - latitude}"/>`).join("");
   const land = [
@@ -83,8 +85,10 @@ async function loadVessel() {
   $("#disruptionBadge").className = `badge risk-${data.disruption.severity}`;
   $("#vesselDisruption").textContent = data.disruption.description;
   $("#vesselMetrics").innerHTML = [["Port congestion", `${Math.round(data.signals.congestion * 100)}%`], ["Berth wait", `${data.signals.berthWait}h`], ["Weather penalty", `${Math.round(data.signals.weatherPenalty * 100)}%`], ["Vessel speed", `${data.vessel.speed} kn`]].map(([label, value]) => `<article class="metric"><span>${label}</span><strong>${value}</strong></article>`).join("");
+  const selected = data.options.find((option) => option.id === state.selectedRouteId) || data.options.find((option) => option.recommended);
   $("#routeMap").innerHTML = mapSvg(data);
-  $("#routeOptions").innerHTML = data.options.map((option) => `<article class="route-option ${option.recommended ? "selected" : ""}"><div><p>${option.recommended ? "RECOMMENDED" : option.id.toUpperCase()}</p><strong>${option.route.join(" → ")}</strong></div><span class="badge risk-${option.risk}">${option.risk}</span><div class="route-stats"><span>${option.transitHours}h transit</span><span>${money(option.cost)}</span><span>${option.carbon}t CO₂e</span><span>+${option.delay}h delay</span></div></article>`).join("");
+  $("#routeOptions").innerHTML = data.options.map((option) => `<article class="route-option ${option.id === selected.id ? "selected" : ""}"><div><p>${option.id === selected.id ? "SELECTED" : option.id.toUpperCase()}</p><strong>${option.route.join(" → ")}</strong></div><span class="badge risk-${option.risk}">${option.risk}</span><div class="route-stats"><span>${option.transitHours}h transit</span><span>${money(option.cost)}</span><span>${option.carbon}t CO₂e</span><span>+${option.delay}h delay</span></div></article>`).join("");
+  $("#routeTimeline").innerHTML = [["Plan", data.map.planned.join(" → ")], ["Trigger", data.disruption.description], ["Selected recovery", selected.route.join(" → ")], ["Impact", `${selected.delay}h delay · ${money(selected.cost)} · ${selected.carbon}t CO₂e`]].map(([label, value], index) => `<div class="timeline-step"><b>${index + 1}</b><div><span>${label}</span><strong>${h(value)}</strong></div></div>`).join("");
   $("#vesselDetails").innerHTML = [["Vessel", data.vessel.name], ["MMSI", data.vessel.mmsi], ["Position", `${data.vessel.position[0]}, ${data.vessel.position[1]}`], ["Next port", data.vessel.nextPort], ["Calculation", data.audit.deterministicMethod]].map(([key, value]) => `<div><dt>${h(key)}</dt><dd>${h(value)}</dd></div>`).join("");
   evidence("#vesselEvidence", "#vesselEvidenceMode", data);
   loadAgentRecommendation("vessel", { minutes: state.vesselMinutes }, "#vesselAi");
@@ -98,6 +102,7 @@ async function loadContainers() {
   $("#containerMetrics").innerHTML = [["Moves proposed", data.moves.length], ["Units repositioned", data.impact.moved], ["Synthetic cost", money(data.impact.cost)], ["Carbon proxy", `${data.impact.carbon}t`]].map(([label, value]) => `<article class="metric"><span>${label}</span><strong>${value}</strong></article>`).join("");
   $("#portBalances").innerHTML = data.ports.map((port) => `<article class="balance"><div><strong>${port.code}</strong><span>${h(port.name)}</span></div><div class="balance-bar"><i class="${port.balance >= 0 ? "surplus" : "deficit"}" style="width:${Math.min(Math.abs(port.balance) / 3.2, 100)}%"></i></div><b class="${port.balance >= 0 ? "up" : "down"}">${port.balance >= 0 ? "+" : ""}${port.balance}</b></article>`).join("");
   $("#containerMoves").innerHTML = data.moves.map((move) => `<article class="move"><b>#${move.rank}</b><div><strong>${move.origin} → ${move.destination}</strong><span>${move.units} ${data.equipment} · ${move.distance.toLocaleString()} nm</span></div><div><strong>${money(move.cost)}</strong><span>${move.carbon}t CO₂e · +${move.service} service</span></div></article>`).join("");
+  $("#containerFlow").innerHTML = data.moves.slice(0, 3).map((move, index) => `<div class="flow-row"><span class="flow-port">${move.origin}<i class="flow-surplus"></i></span><div class="flow-track"><i style="animation-delay:${index * .25}s"></i><b>${move.units} ${data.equipment}</b></div><span class="flow-port">${move.destination}<i class="flow-deficit"></i></span></div>`).join("");
   $("#constraints").innerHTML = data.moves.map((move) => `<p class="constraint"><strong>${move.origin} → ${move.destination}:</strong> ${h(move.constraint)}</p>`).join("");
   evidence("#containersEvidence", "#containersEvidenceMode", data);
   loadAgentRecommendation("containers", Object.fromEntries(query), "#containersAi");
@@ -176,6 +181,13 @@ $("#priceRefresh").addEventListener("click", (event) => withBusy(event.currentTa
 $("#containerRefresh").addEventListener("click", (event) => withBusy(event.currentTarget, "Ranking moves…", loadContainers));
 document.querySelectorAll(".vessel-step").forEach((button) => button.addEventListener("click", () => withBusy(button, "Updating route…", async () => { state.vesselMinutes += Number(button.dataset.step); await loadVessel(); })));
 $("#resetVessel").addEventListener("click", (event) => withBusy(event.currentTarget, "Resetting…", async () => { state.vesselMinutes = 0; await loadVessel(); }));
+$("#routeOptions").addEventListener("click", (event) => {
+  const card = event.target.closest(".route-option");
+  if (!card || !state.vessel) return;
+  const route = [...document.querySelectorAll(".route-option")].indexOf(card);
+  state.selectedRouteId = state.vessel.options[route].id;
+  loadVessel();
+});
 $("#openConfig").addEventListener("click", async () => { await providerStatus(); $("#configDialog").showModal(); });
 $("#saveConfig").addEventListener("click", () => saveProviders().catch((error) => alert(`Unable to save: ${error.message}`)));
 $("#testWebIq").addEventListener("click", () => testProvider("webiq"));
