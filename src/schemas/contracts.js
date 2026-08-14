@@ -10,7 +10,7 @@ export const settingsInputSchema = z.object({
 
 export const briefSchema = z.object({
   headline: z.string().max(180),
-  actions: z.array(z.string().max(180)).min(2).max(4),
+  actions: z.array(z.string().max(300)).min(2).max(4),
   caution: z.string().max(240)
 });
 
