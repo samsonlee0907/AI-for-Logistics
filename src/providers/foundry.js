@@ -1,6 +1,6 @@
 import { DefaultAzureCredential, getBearerTokenProvider } from "@azure/identity";
 import { AzureOpenAI } from "openai";
-import { briefSchema } from "../schemas/contracts.js";
+import { briefSchema, pricingAdvisorySchema } from "../schemas/contracts.js";
 
 function parseStructuredBrief(content) {
   const text = Array.isArray(content) ? content.map((part) => part.text || "").join("") : content;
@@ -8,6 +8,14 @@ function parseStructuredBrief(content) {
   const jsonObject = normalized.match(/\{[\s\S]*\}/)?.[0];
   if (!jsonObject) throw new Error("No JSON object returned.");
   return briefSchema.parse(JSON.parse(jsonObject));
+}
+
+function parseStructured(content, schema) {
+  const text = Array.isArray(content) ? content.map((part) => part.text || "").join("") : content;
+  const normalized = String(text || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  const jsonObject = normalized.match(/\{[\s\S]*\}/)?.[0];
+  if (!jsonObject) throw new Error("No JSON object returned.");
+  return schema.parse(JSON.parse(jsonObject));
 }
 
 function mockBrief(scenario) {
@@ -57,6 +65,29 @@ export async function createOperatorBrief({ scenario, facts, evidence }) {
     brief: { headline: parsed.headline, rationale: parsed.rationale, actions: parsed.actions, caution: parsed.caution },
     citedSources
   };
+}
+
+export async function createPricingAdvisory({ facts, evidence }) {
+  const endpoint = process.env.FOUNDRY_ENDPOINT;
+  const deployment = process.env.FOUNDRY_DEPLOYMENT;
+  if (!endpoint || !deployment) return { mode: "unavailable", message: "Embedded Foundry is not configured in this environment." };
+  const credential = new DefaultAzureCredential();
+  const client = new AzureOpenAI({ endpoint, azureADTokenProvider: getBearerTokenProvider(credential, "https://cognitiveservices.azure.com/.default"), apiVersion: "2024-10-21" });
+  try {
+    const completion = await client.chat.completions.create({
+      model: deployment,
+      temperature: 1,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: "You are a freight-pricing advisory analyst. Review the supplied deterministic baseline factors and cited external context. Return JSON only: marketBps (-150..150 integer), disruptionBps (-150..150 integer), rationale (max 500 chars), sourceIndexes (0..3 supplied citation indexes). Never invent facts, sources, or URLs. This is a bounded advisory input, not a price quote." },
+        { role: "user", content: JSON.stringify({ deterministicBaseline: facts, citations: evidence.map((item, index) => ({ index, ...item })) }) }
+      ]
+    });
+    const parsed = parseStructured(completion?.choices?.[0]?.message?.content, pricingAdvisorySchema);
+    return { mode: "live", ...parsed, citedSources: [...new Set(parsed.sourceIndexes)].map((index) => evidence[index]).filter(Boolean) };
+  } catch (error) {
+    return { mode: "unavailable", message: `Foundry pricing review failed: ${error.message}` };
+  }
 }
 
 export async function testFoundryConnection() {

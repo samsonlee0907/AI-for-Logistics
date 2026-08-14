@@ -59,3 +59,35 @@ export function calculateFreightPrice(input = {}) {
     }
   };
 }
+
+export function applyPricingAdvisory(baseline, advisory) {
+  if (!advisory || advisory.mode !== "live") {
+    return {
+      ...baseline,
+      baselineRecommendation: baseline.recommendation,
+      aiAdjustment: { mode: advisory?.mode || "unavailable", basisPoints: 0, amount: 0, rationale: advisory?.message || "No live model adjustment was available; the deterministic baseline remains published.", citedSources: [] }
+    };
+  }
+  const basisPoints = clamp(advisory.marketBps + advisory.disruptionBps, -300, 300);
+  const amount = Math.round(baseline.recommendation * basisPoints / 10000);
+  const recommendation = clamp(baseline.recommendation + amount, 2350, 3900);
+  const guardrails = {
+    floor: Math.round(recommendation * 0.92 / 10) * 10,
+    ceiling: Math.round(recommendation * 1.08 / 10) * 10,
+    approval: recommendation > 3300 ? "Commercial approval required" : "Planner delegation available"
+  };
+  return {
+    ...baseline,
+    baselineRecommendation: baseline.recommendation,
+    recommendation,
+    guardrails,
+    factors: [...baseline.factors, { label: "AI-reviewed market context", value: amount, rationale: `Bounded ${basisPoints} bps model signal; source-linked context cannot exceed +/-300 bps.` }],
+    aiAdjustment: { mode: "live", basisPoints, amount, rationale: advisory.rationale, citedSources: advisory.citedSources },
+    audit: {
+      ...baseline.audit,
+      deterministicMethod: "deterministic baseline + bounded, source-linked model signal + published guardrails",
+      modelInput: `Model signal ${basisPoints >= 0 ? "+" : ""}${basisPoints} bps; independently clamped to +/-300 bps before guardrails.`,
+      assumptions: [...baseline.audit.assumptions, "Model output is constrained to bounded market and disruption signals; it cannot set a free-form price."]
+    }
+  };
+}

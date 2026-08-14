@@ -15,6 +15,13 @@ export const briefSchema = z.object({
   sourceIndexes: z.array(z.number().int().nonnegative()).max(3).default([])
 });
 
+export const pricingAdvisorySchema = z.object({
+  marketBps: z.number().int().min(-150).max(150),
+  disruptionBps: z.number().int().min(-150).max(150),
+  rationale: z.string().max(700),
+  sourceIndexes: z.array(z.number().int().nonnegative()).max(3).default([])
+});
+
 export const pricingInputSchema = z.object({
   demandIndex: z.coerce.number().min(60).max(150).default(112),
   capacityIndex: z.coerce.number().min(60).max(140).default(86),

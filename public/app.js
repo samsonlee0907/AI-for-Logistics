@@ -1,4 +1,4 @@
-const state = { vesselMinutes: 0, currentScenario: "pricing", pricing: null, vessel: null, containers: null };
+const state = { vesselMinutes: 0, currentScenario: "pricing", pricing: null, vessel: null, containers: null, recommendationRequests: {} };
 const $ = (selector) => document.querySelector(selector);
 const money = (value) => `$${Number(value).toLocaleString()}`;
 const h = (value) => String(value).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -30,8 +30,10 @@ function evidence(target, modeTarget, data) {
     return;
   }
   $(target).innerHTML = sources.map((item) => {
-    const domain = new URL(item.url).hostname.replace(/^www\./, "");
-    return `<article class="evidence"><div class="evidence-meta"><span>${h(domain)}</span><span>${h(item.sourceType)}</span><span>${new Date(item.timestamp).toLocaleDateString()}</span></div><a href="${h(item.url)}" target="_blank" rel="noreferrer">${h(item.title)}</a><p>${h(item.snippet)}</p><span class="evidence-link">Open source ↗</span></article>`;
+    let domain = "source";
+    try { domain = new URL(item.url).hostname.replace(/^www\./, ""); } catch { /* URL was validated server-side, retain safe label if it is malformed. */ }
+    const excerpt = h(item.snippet);
+    return `<article class="evidence"><div class="evidence-meta"><span>${h(domain)}</span><span>${h(item.sourceType)}</span><span>${new Date(item.timestamp).toLocaleDateString()}</span></div><a href="${h(item.url)}" target="_blank" rel="noreferrer">${h(item.title)}</a><p>${excerpt.slice(0, 210)}${excerpt.length > 210 ? "…" : ""}</p>${excerpt.length > 210 ? `<details><summary>Read cited context</summary><p>${excerpt}</p></details>` : ""}<span class="evidence-link">Open source ↗</span></article>`;
   }).join("");
 }
 
@@ -48,8 +50,9 @@ async function loadPricing() {
   $("#priceApproval").textContent = data.guardrails.approval;
   $("#priceDecision").textContent = data.audit.decision;
   $("#priceAudit").innerHTML = Object.entries(data.audit).filter(([key]) => key !== "assumptions").map(([key, value]) => `<div><dt>${h(key.replace(/([A-Z])/g, " $1"))}</dt><dd>${h(value)}</dd></div>`).join("");
-  const baseRate = 2420;
-  $("#pricingKpis").innerHTML = [["Base lane rate", money(baseRate)], ["Quote uplift", money(data.recommendation - baseRate)], ["Guardrail headroom", money(data.guardrails.ceiling - data.recommendation)], ["Decision value", "Commercial review"]].map(([label, value]) => `<article class="metric"><span>${label}</span><strong>${value}</strong></article>`).join("");
+  const baseline = data.baselineRecommendation || data.recommendation;
+  const adjustment = data.aiAdjustment || { amount: 0, basisPoints: 0, mode: "unavailable" };
+  $("#pricingKpis").innerHTML = [["Deterministic baseline", money(baseline)], ["AI-reviewed signal", `${adjustment.basisPoints >= 0 ? "+" : ""}${adjustment.basisPoints} bps`], ["Final bounded change", `${adjustment.amount >= 0 ? "+" : ""}${money(adjustment.amount)}`], ["Guardrail headroom", money(data.guardrails.ceiling - data.recommendation)]].map(([label, value]) => `<article class="metric"><span>${label}</span><strong>${value}</strong></article>`).join("");
   $("#factorList").innerHTML = data.factors.map((factor) => `<article class="factor"><div><strong>${h(factor.label)}</strong><small>${h(factor.rationale)}</small></div><b class="${factor.value >= 0 ? "up" : "down"}">${factor.value >= 0 ? "+" : ""}${money(factor.value)}</b></article>`).join("");
   evidence("#pricingEvidence", "#pricingEvidenceMode", data);
   loadAgentRecommendation("pricing", Object.fromEntries(query), "#pricingAi");
@@ -109,12 +112,16 @@ async function loadContainers() {
 }
 
 async function loadAgentRecommendation(scenario, facts, target) {
+  const requestId = (state.recommendationRequests[target] || 0) + 1;
+  state.recommendationRequests[target] = requestId;
   $(target).innerHTML = `<div class="agent-loading"><span></span>AI agent is reasoning over the deterministic decision factors…</div>`;
   try {
     const data = await api(`/api/scenarios/${scenario}/brief`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(facts) });
+    if (state.recommendationRequests[target] !== requestId) return;
     const sources = data.citedSources?.length ? `<div class="agent-sources">${data.citedSources.map((source) => `<a href="${h(source.url)}" target="_blank" rel="noreferrer">${h(source.title)} ↗</a>`).join("")}</div>` : "";
     $(target).innerHTML = `<div class="panel-head"><div><p class="eyebrow">AI agent recommendation</p><h3>${h(data.brief.headline)}</h3></div><span class="badge">${data.mode === "live" ? "GPT-5.6-TERRA" : "LOCAL FALLBACK"}</span></div><p class="agent-rationale">${h(data.brief.rationale)}</p><div class="agent-actions">${data.brief.actions.map((action) => `<span>${h(action)}</span>`).join("")}</div><p class="callout">${h(data.brief.caution)}</p>${sources}`;
   } catch (error) {
+    if (state.recommendationRequests[target] !== requestId) return;
     $(target).innerHTML = `<div class="agent-error"><strong>AI recommendation unavailable</strong><p>${h(error.message)}</p></div>`;
   }
 }

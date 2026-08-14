@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { calculateFreightPrice } from "../src/services/pricing.js";
+import { applyPricingAdvisory, calculateFreightPrice } from "../src/services/pricing.js";
 import { calculateVesselRecovery } from "../src/services/vessel.js";
 import { calculateContainerMoves } from "../src/services/containers.js";
 import { publicProviderStatus } from "../src/config/settings.js";
@@ -14,6 +14,15 @@ test("freight pricing is deterministic, explainable, and guarded", () => {
   assert.ok(first.recommendation <= first.guardrails.ceiling);
   assert.equal(first.factors.length, 11);
   assert.match(first.audit.deterministicMethod, /factor contributions/);
+});
+
+test("pricing model signals are bounded and remain inside deterministic guardrails", () => {
+  const baseline = calculateFreightPrice({ demandIndex: 125, capacityIndex: 78, equipment: "40HC", serviceTier: "priority", disruption: "port-congestion" });
+  const result = applyPricingAdvisory(baseline, { mode: "live", marketBps: 150, disruptionBps: 150, rationale: "Bounded review.", citedSources: [] });
+  assert.equal(result.aiAdjustment.basisPoints, 300);
+  assert.ok(result.recommendation <= 3900);
+  assert.ok(result.recommendation >= result.guardrails.floor);
+  assert.ok(result.recommendation <= result.guardrails.ceiling);
 });
 
 test("vessel recovery escalates a deterministic closure and retains alternatives", () => {

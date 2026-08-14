@@ -1,11 +1,11 @@
 import express from "express";
 import { calculateContainerMoves } from "./services/containers.js";
-import { calculateFreightPrice } from "./services/pricing.js";
+import { applyPricingAdvisory, calculateFreightPrice } from "./services/pricing.js";
 import { calculateVesselRecovery } from "./services/vessel.js";
 import { getSettings, publicProviderStatus, updateSettings } from "./config/settings.js";
 import { containerInputSchema, pricingInputSchema, settingsInputSchema, timeInputSchema } from "./schemas/contracts.js";
 import { getWebIqEvidence, testWebIqConnection } from "./providers/webiq.js";
-import { createOperatorBrief, testFoundryConnection } from "./providers/foundry.js";
+import { createOperatorBrief, createPricingAdvisory, testFoundryConnection } from "./providers/foundry.js";
 
 const scenarioCalculators = {
   pricing: (input) => calculateFreightPrice(pricingInputSchema.parse(input)),
@@ -44,8 +44,10 @@ export function createApp() {
     try {
       const calculate = scenarioCalculators[request.params.scenario];
       if (!calculate) return response.status(404).json({ error: "Unknown scenario." });
-      const result = calculate(request.query);
+      const baseline = calculate(request.query);
       const context = await getWebIqEvidence(request.params.scenario);
+      const advisory = request.params.scenario === "pricing" ? await createPricingAdvisory({ facts: baseline, evidence: context.evidence }) : null;
+      const result = request.params.scenario === "pricing" ? applyPricingAdvisory(baseline, advisory) : baseline;
       return response.json({ ...result, externalIntelligence: { label: "External intelligence — advisory context only", ...context } });
     } catch (error) { return next(error); }
   });
