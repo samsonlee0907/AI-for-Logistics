@@ -1,12 +1,12 @@
 # Logistics AI Control Tower
 
-A polished, mock-first client portal with exactly three cohesive shipping/logistics demonstrations:
+A polished client portal with exactly three cohesive shipping/logistics demonstrations:
 
 1. **Dynamic Freight Pricing Control Tower** — an explainable lane-rate recommendation with factor contributions, confidence, guardrails, audit evidence, and advisory market context.
 2. **Vessel Network Disruption Recovery** — deterministic AIS/progress, port, weather, closure simulation and reroute comparison.
 3. **Empty Container Utilization Across Ports** — capacity-aware equipment imbalances and ranked repositioning moves.
 
-> This is a **synthetic demonstration**, not a production pricing, navigation, dispatch, or equipment-release system. Operational math is deterministic and inspectable. Models and web intelligence are advisory only and cannot override a recommendation.
+> This is a **synthetic demonstration**, not a production pricing, navigation, dispatch, or equipment-release system. Operational math is deterministic and inspectable. AI can provide a tightly bounded, audited pricing signal but cannot create an unconstrained quote or bypass commercial guardrails.
 
 ## Quick start
 
@@ -34,7 +34,7 @@ docs/scenarios/         Per-scenario calculation and safety documentation
 tests/                  Node built-in focused service/config tests
 ```
 
-`src/app.js` is the Express API and static-server composition root. All scenario APIs first calculate deterministic facts. Web IQ evidence is attached as labelled context and Foundry receives only those precomputed facts and citations to create a brief.
+`src/app.js` is the Express API and static-server composition root. All scenario APIs first calculate deterministic facts. Web IQ evidence is attached as labelled context; Foundry receives only precomputed facts and citations to create scenario recommendations and, for pricing, a bounded market/disruption signal.
 
 ## Provider configuration
 
@@ -50,7 +50,7 @@ WEBIQ_API_KEY=
 WEBIQ_ENABLED=false
 ```
 
-When `WEBIQ_ENABLED=false` (the default), each scenario uses deterministic, source-like evidence labelled **SIMULATED**. When enabled, the server calls the configured endpoint with `x-apikey`; live errors are returned as explicit errors and are never converted into mock success. Use the configuration test control to validate a live connection before a scenario request.
+When `WEBIQ_ENABLED=false` (the default), scenarios use synthetic data alone and show no external citations. When enabled, the server calls the shared Web IQ endpoint with `x-apikey`; live errors are returned explicitly and are never converted into mock success. Use the configuration test control to validate a live connection before a scenario request.
 
 ### Foundry / Azure OpenAI
 
@@ -59,7 +59,7 @@ FOUNDRY_ENDPOINT=
 FOUNDRY_DEPLOYMENT=
 ```
 
-Foundry is embedded rather than browser-configurable. In Azure Container Apps the server uses `DefaultAzureCredential`, which resolves to the app's system-assigned managed identity; the identity must have the **Cognitive Services OpenAI User** role on the Foundry resource. Local use remains mock-first unless both non-secret environment values are set and the local Azure CLI identity has access. The server invokes an Azure OpenAI chat-completions deployment with a JSON response contract validated by Zod. Invalid model output and live failures are surfaced explicitly.
+Foundry is embedded rather than browser-configurable. In Azure Container Apps the server uses `DefaultAzureCredential`, which resolves to the app's system-assigned managed identity; the identity must have the **Cognitive Services OpenAI User** role on the Foundry resource. The server validates structured model responses with Zod. For freight pricing it accepts only separate market and disruption signals of -150 to +150 basis points each, clamps their combined effect to +/-300 basis points, then recalculates published guardrails. Invalid model output or a live failure leaves the deterministic baseline visible with an explicit unavailable status.
 
 ## Deployment
 
