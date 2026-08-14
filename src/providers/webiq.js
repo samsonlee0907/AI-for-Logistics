@@ -1,4 +1,5 @@
 import { getSettings } from "../config/settings.js";
+import { snapshotCapturedAt, snapshotEvidenceFor } from "../fixtures/external-intelligence-snapshot.js";
 
 function normalizeEvidence(payload, contextType) {
   const rows = [];
@@ -84,7 +85,11 @@ async function searchWeb(query, apiKey) {
 
 export async function getWebIqEvidence(topic, facts) {
   const { webIq } = getSettings();
-  if (!webIq.enabled) return { mode: "disabled", evidence: [] };
+  if (!webIq.enabled) return {
+    mode: "snapshot",
+    evidence: snapshotEvidenceFor(topic),
+    capturedAt: snapshotCapturedAt
+  };
   if (!webIq.apiKey) throw new Error("Web IQ is enabled but no API key is configured.");
   const evidence = (await Promise.all(webIqQueries(topic, facts).map((query) => searchWeb(query, webIq.apiKey)))).flat();
   return { mode: "live", evidence };
@@ -92,7 +97,7 @@ export async function getWebIqEvidence(topic, facts) {
 
 export async function testWebIqConnection() {
   const { webIq } = getSettings();
-  if (!webIq.enabled) return { provider: "Web IQ", mode: "disabled", ok: true, message: "External intelligence is disabled; no Web IQ request was made." };
+  if (!webIq.enabled) return { provider: "Web IQ", mode: "snapshot", ok: true, message: `Live Web IQ is disabled; the dated research snapshot captured ${snapshotCapturedAt} is active.` };
   if (!webIq.apiKey) return { provider: "Web IQ", mode: "live", ok: false, message: "Web IQ is enabled but no API key is configured." };
   try {
     await getWebIqEvidence("port congestion");

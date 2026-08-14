@@ -24,7 +24,7 @@ async function withBusy(button, label, work) {
 
 function evidence(target, modeTarget, data) {
   const { mode, evidence: sources } = data.externalIntelligence;
-  $(modeTarget).textContent = mode === "live" ? "LIVE CITATIONS" : "OFF";
+  $(modeTarget).textContent = mode === "live" ? "LIVE CITATIONS" : mode === "snapshot" ? "DATED SNAPSHOT" : "OFF";
   if (!sources.length) {
     $(target).innerHTML = `<div class="evidence-empty"><strong>Web IQ evidence is off</strong><p>GPT-5.6-Terra can still reason over synthetic operating facts. Enable Web IQ to supply current cited news and conditions as additional decision evidence.</p></div>`;
     return;
@@ -34,8 +34,9 @@ function evidence(target, modeTarget, data) {
     try { domain = new URL(item.url).hostname.replace(/^www\./, ""); } catch { /* URL was validated server-side, retain safe label if it is malformed. */ }
     const excerpt = h(item.snippet);
     const timestamp = new Date(item.timestamp);
+    const isSnapshot = mode === "snapshot";
     const ageMinutes = Math.max(0, Math.round((Date.now() - timestamp.getTime()) / 60_000));
-    const freshness = Number.isFinite(ageMinutes) ? (ageMinutes < 60 ? `${ageMinutes}m observed` : ageMinutes < 1_440 ? `${Math.round(ageMinutes / 60)}h observed` : `${Math.round(ageMinutes / 1_440)}d observed`) : "timestamp unavailable";
+    const freshness = isSnapshot ? `captured ${timestamp.toLocaleDateString()}` : Number.isFinite(ageMinutes) ? (ageMinutes < 60 ? `${ageMinutes}m observed` : ageMinutes < 1_440 ? `${Math.round(ageMinutes / 60)}h observed` : `${Math.round(ageMinutes / 1_440)}d observed`) : "timestamp unavailable";
     return `<article class="evidence"><div class="evidence-meta"><span>${h(domain)}</span><span>${h(item.sourceType)}</span><span>${h(freshness)}</span></div><a href="${h(item.url)}" target="_blank" rel="noreferrer">${h(item.title)}</a><p>${excerpt.slice(0, 210)}${excerpt.length > 210 ? "…" : ""}</p>${excerpt.length > 210 ? `<details><summary>Read cited context</summary><p>${excerpt}</p></details>` : ""}<span class="evidence-link">Open source ↗</span></article>`;
   }).join("");
 }

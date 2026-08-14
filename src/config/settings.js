@@ -45,7 +45,7 @@ export function publicProviderStatus() {
     webIq: {
       enabled: settings.webIq.enabled,
       configured: Boolean(settings.webIq.apiKey),
-      mode: settings.webIq.enabled ? "live" : "mock"
+      mode: settings.webIq.enabled ? "live" : "snapshot"
     },
     foundry: {
       embedded: true,

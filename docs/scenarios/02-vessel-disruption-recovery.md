@@ -10,7 +10,7 @@ The deterministic route graph compares the planned Shanghai-Singapore-Jebel Ali-
 
 ## External intelligence and model roles
 
-Web IQ provides citation-ready latest maritime news plus origin and destination weather/port context. The portal displays the source type and freshness so an operator can judge whether it remains decision-relevant. It does not modify distances, vessel state, risk, cost, carbon, or feasibility calculations.
+Web IQ provides citation-ready latest maritime news plus origin and destination weather/port context. When live retrieval is off, the portal uses a fixed research snapshot captured on 15 August 2026, visibly labeled `Point-in-time snapshot`; it must not substitute for live marine or port notices. The portal displays the source type and freshness so an operator can judge whether it remains decision-relevant. It does not modify distances, vessel state, risk, cost, carbon, or feasibility calculations.
 
 GPT-5.6-Terra reasons over the calculated trade-offs and the indexed citations, then returns a validated trace and can select one route identifier from the deterministic alternatives as its evidence-informed recommendation. The selected route is highlighted in the portal; an operator may select a different viable option. The model cannot create a route, issue a sailing order, or replace marine operational controls.
 

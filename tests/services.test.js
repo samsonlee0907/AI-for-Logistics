@@ -5,6 +5,7 @@ import { calculateVesselRecovery } from "../src/services/vessel.js";
 import { calculateContainerMoves } from "../src/services/containers.js";
 import { publicProviderStatus } from "../src/config/settings.js";
 import { webIqQueries } from "../src/providers/webiq.js";
+import { snapshotEvidenceFor } from "../src/fixtures/external-intelligence-snapshot.js";
 import { createPortalAuth } from "../src/auth/portal-auth.js";
 import { resolveScenarioDecision } from "../src/providers/foundry.js";
 import { briefSchema } from "../src/schemas/contracts.js";
@@ -65,6 +66,14 @@ test("vessel Web IQ plan retrieves current disruption and terminal weather conte
 test("each scenario includes a dedicated latest-news Web IQ query", () => {
   for (const scenario of ["pricing", "vessel", "containers"]) {
     assert.ok(webIqQueries(scenario, calculateVesselRecovery(0)).some((query) => query.endpoint === "news" && /latest/i.test(query.query)));
+  }
+});
+
+test("each scenario has dated snapshot evidence for offline GPT reasoning", () => {
+  for (const scenario of ["pricing", "vessel", "containers"]) {
+    const evidence = snapshotEvidenceFor(scenario);
+    assert.equal(evidence.length, 2);
+    assert.ok(evidence.every((item) => item.sourceType.startsWith("Point-in-time snapshot") && item.url.startsWith("https://") && item.timestamp === "2026-08-15T03:46:33+08:00"));
   }
 });
 

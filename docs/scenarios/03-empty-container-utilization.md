@@ -10,7 +10,7 @@ The operator may select balanced, cost, or service prioritization. Every propose
 
 ## External intelligence and model roles
 
-Web IQ supplies cited latest equipment news plus demand/restriction context. The UI exposes the source type and freshness. Live failure remains visible to the client; it is never silently replaced with simulated success. External evidence cannot alter balances, terminal capacity caps, or feasibility.
+Web IQ supplies cited latest equipment news plus demand/restriction context. When live retrieval is off, the UI uses a fixed research snapshot captured on 15 August 2026 and labels it `Point-in-time snapshot`. The UI exposes the source type and freshness. Live failure remains visible to the client; it is never silently replaced with snapshot success. External evidence cannot alter balances, terminal capacity caps, or feasibility.
 
 GPT-5.6-Terra reasons over calculated moves and indexed evidence through the Container App managed identity. It returns a validated reasoning trace and can select one existing move rank as the evidence-informed priority; that move is highlighted for the operator. It cannot create a new move, alter capacity constraints, or approve a repositioning order.
 

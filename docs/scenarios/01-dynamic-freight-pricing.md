@@ -10,7 +10,7 @@ The decision audit carries the calculation identifier, method, assumptions, mode
 
 ## External intelligence and model roles
 
-Web IQ can return cited market or disruption context as `title`, `URL`, `snippet`, `timestamp`, and `source type`. When disabled, no external evidence is shown. When enabled, citations are displayed as advisory evidence and passed to the server-side model only as indexed records; the model cannot invent a URL.
+Web IQ can return cited market or disruption context as `title`, `URL`, `snippet`, `timestamp`, and `source type`. When disabled, the portal supplies a fixed research snapshot captured on 15 August 2026; it is visibly labeled `Point-in-time snapshot` and must not be read as a live market condition. When enabled, current citations replace the snapshot and are passed to the server-side model only as indexed records; the model cannot invent a URL.
 
 GPT-5.6-Terra receives the precomputed baseline and the indexed citations through the Container App managed identity. It returns a concise reasoning trace, source indexes, operator actions, and two bounded signals: market and disruption, each between -150 and +150 basis points. The server validates them, clamps their combined impact to +/-300 basis points, applies that amount to the deterministic baseline, and recalculates guardrails. The displayed final rate therefore shows a real, source-linked GPT decision input, not just narrative. It cannot set a free-form price, change deterministic inputs, invent citations, or bypass approval requirements. Operators must check citation freshness and commercial authority before acting.
 

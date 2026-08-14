@@ -54,7 +54,7 @@ WEBIQ_API_KEY=
 WEBIQ_ENABLED=false
 ```
 
-When `WEBIQ_ENABLED=false` (the default), scenarios use synthetic data alone and show no external citations. When enabled, the server uses `x-apikey` server-side to retrieve latest scenario news from `/v3/search/news` plus scenario-specific web context from `/v3/search/web` (including origin and destination weather for vessel recovery). Live errors are returned explicitly and are never converted into mock success. Use the configuration test control to validate a live connection before a scenario request.
+When `WEBIQ_ENABLED=false` (the default), scenarios use a committed **point-in-time research snapshot** collected on 15 August 2026. Its source-shaped records are intentionally labeled `Point-in-time snapshot`, include their capture date, and are supplied to GPT as dated context—not as live conditions. When enabled, the server instead uses `x-apikey` server-side to retrieve latest scenario news from `/v3/search/news` plus scenario-specific web context from `/v3/search/web` (including origin and destination weather for vessel recovery). Live errors are returned explicitly and are never converted into snapshot success. Use the configuration test control to validate a live connection before a scenario request.
 
 ### Foundry / Azure OpenAI
 
