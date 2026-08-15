@@ -20,6 +20,6 @@ form.addEventListener("submit", async (event) => {
     error.textContent = requestError.message;
   } finally {
     button.disabled = false;
-    button.textContent = "Sign in securely";
+    button.textContent = "Sign in";
   }
 });
