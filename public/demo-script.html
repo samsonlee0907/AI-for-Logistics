@@ -18,24 +18,25 @@
       .doc-header a.back:hover{color:var(--ink);border-color:var(--teal)}
       .doc h1{font-size:30px;letter-spacing:-.04em;margin:6px 0 4px}
       .doc .subtitle{color:var(--muted);font-size:14px;line-height:1.6;max-width:680px}
-      .doc .meta{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 30px}
-      .doc .meta code{font:11px "DM Mono";background:#0e2929;border:1px solid var(--line);border-radius:6px;padding:6px 9px;color:var(--lime);word-break:break-all}
       .doc section{margin:34px 0}
       .doc h2{font-size:19px;letter-spacing:-.02em;margin:0 0 6px;padding-top:14px;border-top:1px solid var(--line)}
       .doc section:first-of-type h2{border-top:0;padding-top:0}
       .doc h2 .step-index{color:var(--teal);font:11px "DM Mono";display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.11em}
+      .doc h3{font-size:14px;letter-spacing:-.01em;margin:20px 0 8px;color:var(--lime)}
       .doc ol, .doc ul{padding-left:22px;margin:12px 0}
       .doc li{margin:9px 0;line-height:1.6;font-size:13.5px;color:#d3e6e1}
       .doc p{line-height:1.65;font-size:13.5px;color:#d3e6e1}
       .doc strong{color:var(--ink)}
       .doc blockquote{margin:14px 0;padding:12px 15px;background:#092221;border-left:2px solid var(--teal);border-radius:0 8px 8px 0;color:#b9d5ce;font-size:13px;line-height:1.6}
+      .doc .background{padding:14px 16px;border:1px solid var(--line);border-radius:9px;background:#0c2425}
+      .doc .background p{margin-top:0}
+      .doc .background ul{margin:8px 0 0}
       .doc .key-message{margin-top:14px;padding:12px 15px;border:1px solid #3f7364;border-radius:8px;background:#0d2926;font-size:13px;color:#c9e6dc}
       .doc .key-message b{color:var(--lime);display:block;font:10px "DM Mono";text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
       .doc table{width:100%;border-collapse:collapse;margin-top:14px;font-size:12.5px}
       .doc th, .doc td{border-bottom:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
       .doc th{color:var(--teal);font:11px "DM Mono";text-transform:uppercase;letter-spacing:.06em}
       .doc td{color:#d3e6e1;line-height:1.5}
-      .doc .timebox{display:inline-block;margin-left:8px;font:10px "DM Mono";color:var(--amber)}
       .print-hint{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:11px}
       @media print{.doc-header a.back, .print-hint{display:none}}
     </style>
@@ -46,89 +47,117 @@
         <div>
           <a class="brand" href="/"><span class="brand-mark">L</span><span>Logistics<br><strong>AI Control Tower</strong></span></a>
           <h1>Demo script</h1>
-          <p class="subtitle">A presenter's runbook for a live, ~12–15 minute walkthrough of the portal. Keep the framing consistent throughout: <strong>all operational numbers are deterministic and synthetic; GPT-5.6-Terra adds bounded, cited reasoning on top — it never invents facts or bypasses guardrails.</strong></p>
+          <p class="subtitle">A presenter's runbook for a live, ~12–15 minute walkthrough of the portal's three use cases. Written for an audience with <strong>no prior logistics/shipping background</strong> — each scenario opens with a plain-language primer before the click-by-click walkthrough. Assumes the presenter is already signed in. <strong>All operational numbers are deterministic and synthetic; GPT-5.6-Terra adds bounded, cited reasoning on top — it never invents facts or bypasses guardrails.</strong></p>
         </div>
         <a class="back" href="/">← Back to portal</a>
       </header>
 
-      <div class="meta">
-        <code>Live URL: logistics-ai-control-tower.greenpebble-d9757289.southeastasia.azurecontainerapps.io</code>
-        <code>Credentials: logistic-user-fy27! / logistic-user-fy27!</code>
-      </div>
-
       <section>
-        <h2><span class="step-index">Before you start</span>30 seconds</h2>
-        <ul>
-          <li>Open the URL in a fresh browser tab (or private window) so the sign-in page shows.</li>
-          <li>Have the <strong>Configuration</strong> dialog test ready in case you want to demonstrate Web IQ live mode (optional, see step 6).</li>
-        </ul>
         <blockquote>"This is a client-facing control tower with three logistics AI demos. Everything you'll see runs on deterministic, auditable math — GPT-5.6-Terra sits alongside it as an advisory reasoning layer, grounded in cited evidence, never a black box making the call."</blockquote>
       </section>
 
       <section>
-        <h2><span class="step-index">1 · Sign in</span>30 seconds</h2>
-        <ol>
-          <li>Show the <strong>Sign in</strong> page — point out the "Restricted client portal" framing and the notice that access is logged and data is synthetic.</li>
-          <li>Enter <code>logistic-user-fy27!</code> / <code>logistic-user-fy27!</code> and click <strong>Sign in</strong>.</li>
-        </ol>
-        <p><strong>Talking point:</strong> "Access is protected by a signed session cookie server-side — there's no client-side auth logic to bypass."</p>
-      </section>
-
-      <section>
-        <h2><span class="step-index">2 · Orient on the dashboard</span>30 seconds</h2>
+        <h2><span class="step-index">0 · Orient on the dashboard</span>30 seconds</h2>
         <ul>
           <li>Point out the left-hand navigation: <strong>01 Freight pricing</strong>, <strong>02 Vessel recovery</strong>, <strong>03 Empty utilization</strong> — three cohesive scenarios, one shared design language.</li>
-          <li>Point out the <strong>SYNTHETIC DATA</strong> badge in the top bar — call out that this label is persistent across every screen.</li>
-          <li>Point out <strong>Configuration</strong> (top right) — this is where Web IQ live/mock mode is controlled; save it for step 6.</li>
+          <li>Point out the <strong>SYNTHETIC DATA</strong> badge in the top bar — this label persists on every screen; nothing here is a live commercial system.</li>
         </ul>
       </section>
 
       <section>
-        <h2><span class="step-index">3 · Scenario 1 — Dynamic Freight Pricing Control Tower</span>4–5 minutes, the flagship</h2>
-        <p>This is the scenario to spend the most time on.</p>
+        <h2><span class="step-index">1 · Scenario 1 — Dynamic Freight Pricing Control Tower</span>5–6 minutes, the flagship</h2>
+
+        <h3>Background the audience needs first</h3>
+        <div class="background">
+          <p>In ocean shipping, a <strong>"lane"</strong> is a shipping corridor between an origin and destination port (e.g., China → Europe). Carriers must quote a rate for moving cargo on a lane, and that rate should reflect real market conditions, not guesswork. Plain-language definitions for what's on screen:</p>
+          <ul>
+            <li><strong>Lane demand forecast / Available capacity</strong> — how much cargo wants to move on this lane vs. how much vessel space exists. More demand than space pushes price up; the reverse pushes it down.</li>
+            <li><strong>Equipment type</strong> (40HC / 40GP / 20GP) — the container size/type being priced (e.g., 40HC = 40-foot "high cube" container).</li>
+            <li><strong>Service commitment</strong> (Priority / Standard / Contract) — how firm the customer's booking guarantee is; tighter guarantees typically cost more.</li>
+            <li><strong>External disruption signal</strong> — a real-world event (port congestion, storm) that changes cost or risk on this lane.</li>
+            <li><strong>Confidence</strong> — how strongly the underlying data supports this recommendation.</li>
+            <li><strong>Guardrails</strong> (Floor / Ceiling) — the minimum and maximum price the business allows regardless of what any input or AI suggests — a safety rail, not a suggestion.</li>
+            <li><strong>Basis points ("bps")</strong> — a tiny unit of percentage (100 bps = 1%), used here to describe GPT's small, bounded nudge to the price.</li>
+            <li><strong>Factor-level contributions</strong> — a dollar-by-dollar breakdown of why the price is what it is (e.g., "+$85 for port congestion").</li>
+          </ul>
+        </div>
+
+        <h3>Walkthrough</h3>
         <ol>
-          <li><strong>Set the scene.</strong> Read the scenario intro line aloud: <em>"Quote an explainable rate where GPT-5.6-Terra turns cited market intelligence into a bounded adjustment before commercial guardrails are applied."</em></li>
+          <li>Read the scenario intro line aloud: <em>"Quote an explainable rate where GPT-5.6-Terra turns cited market intelligence into a bounded adjustment before commercial guardrails are applied."</em></li>
           <li><strong>Show the AI recommendation panel at the top</strong> (<em>Evidence-informed GPT reasoning</em>):
             <ul>
               <li>Point out the headline, the rationale paragraph, and the <strong>reasoning steps</strong> list — this is GPT explaining its logic in plain language.</li>
               <li>Point out <strong>Applied decision input</strong> — the exact bps adjustment GPT proposed and that was accepted.</li>
-              <li>Point out <strong>Sources applied</strong> at the bottom — cited, clickable evidence links (or the point-in-time snapshot label if Web IQ is off).</li>
-              <li>Click <strong>Acknowledge quote review</strong> to show the human-in-the-loop handoff control.</li>
+              <li>Point out <strong>Sources applied</strong> at the bottom — cited, clickable evidence links (or a dated snapshot label if live web intelligence is off).</li>
             </ul>
           </li>
-          <li><strong>Move to the KPI strip:</strong> "Deterministic baseline," "GPT market signal (bps)," "Evidence-informed change ($)," "Guardrail headroom." Explain: the deterministic engine computes a baseline first; GPT's signal is layered on afterward and is always visibly separated.</li>
-          <li><strong>Adjust the controls</strong> — drag Lane demand forecast and Available capacity sliders, change Equipment (e.g., 40HC → 20GP), change Service commitment, change External disruption signal (e.g., select "Port congestion"). Click <strong>Recalculate recommendation</strong>.
+          <li><strong>Move to the KPI strip:</strong> "Deterministic baseline," "GPT market signal," "Evidence-informed change," "Guardrail headroom." Explain: the deterministic engine computes a baseline first; GPT's signal is layered on afterward and is always visibly separated.</li>
+          <li><strong>Adjust the controls</strong> — drag Lane demand forecast and Available capacity sliders, change Equipment, change Service commitment, change External disruption signal. Click <strong>Recalculate recommendation</strong>.
             <ul><li>Narrate: watch the recommended rate, confidence meter, and factor list all update live.</li></ul>
           </li>
-          <li><strong>Scroll to Factor-level contributions:</strong> call out 2–3 factors by name (e.g., lane imbalance, port congestion, bunker/fuel proxy, emissions) and their dollar contribution — this is the full audit trail behind the number.</li>
-          <li><strong>Scroll to Decision evidence:</strong> show the audit list (decision label, guardrail math) and read the disclosure line: <em>"GPT-5.6-Terra can apply a cited, bounded market/disruption signal. The server validates it, limits it to ±300 bps, then recalculates guardrails."</em></li>
-          <li><strong>Scroll to External intelligence:</strong> show the evidence cards (title, source type, freshness/"captured" date, snippet, "Open source ↗"). Point out the badge — <strong>LIVE CITATIONS</strong>, <strong>DATED SNAPSHOT</strong>, or <strong>OFF</strong> depending on Web IQ mode.</li>
+          <li><strong>Scroll to Factor-level contributions:</strong> call out 2–3 factors by name and their dollar contribution — this is the full audit trail behind the number.</li>
+          <li><strong>Scroll to Decision evidence:</strong> read the disclosure line: <em>"GPT-5.6-Terra can apply a cited, bounded market/disruption signal. The server validates it, limits it to ±300 bps, then recalculates guardrails."</em></li>
+          <li><strong>Scroll to External intelligence:</strong> show the evidence cards (title, source type, freshness, snippet, "Open source ↗").</li>
         </ol>
         <div class="key-message"><b>Key message to land</b>"GPT reasons over the same evidence a human analyst would — market news, disruption signals — and proposes a bounded nudge. It cannot override the guardrails or invent a number; the server clamps and re-validates everything it returns."</div>
       </section>
 
       <section>
-        <h2><span class="step-index">4 · Scenario 2 — Vessel Network Disruption Recovery</span>3–4 minutes</h2>
+        <h2><span class="step-index">2 · Scenario 2 — Vessel Network Disruption Recovery</span>4–5 minutes</h2>
+
+        <h3>Background the audience needs first</h3>
+        <div class="background">
+          <p>Ocean cargo travels on <strong>vessels</strong> following a <strong>planned route</strong> between ports. Real-world events — storms, a congested or closed port — can force a <strong>reroute</strong>. Plain-language definitions for what's on screen:</p>
+          <ul>
+            <li><strong>AIS</strong> (Automatic Identification System) — the industry-standard GPS-like tracking signal every commercial vessel broadcasts, showing its live position, speed, and next port. It's how the shipping industry "sees" ships at sea.</li>
+            <li><strong>Port congestion</strong> — how backed up a port is; a high percentage means ships queue longer before they can dock.</li>
+            <li><strong>Berth wait</strong> — the number of hours a vessel waits at anchor before a dock ("berth") is free.</li>
+            <li><strong>Weather penalty</strong> — how much a storm is expected to slow the ship down or add risk.</li>
+            <li><strong>Disruption severity</strong> (low / medium / high / severe) — a simple traffic-light label summarizing how bad current conditions are.</li>
+            <li><strong>Reroute options</strong> — alternative paths that avoid the disrupted port, each with its own trade-offs.</li>
+            <li><strong>Transit hours / Delay</strong> — total sailing time for a route, and how much longer that is than the original plan.</li>
+            <li><strong>Carbon proxy</strong> — an estimated CO₂ emissions figure calculated from fuel burn, used as a stand-in for real emissions telemetry.</li>
+            <li><strong>Risk</strong> — a simple label (low/medium/high/severe) capturing how exposed a route is to further disruption.</li>
+          </ul>
+        </div>
+
+        <h3>Walkthrough</h3>
         <ol>
           <li>Click <strong>02 Vessel recovery</strong> in the nav.</li>
           <li>Read the intro: <em>"Compare deterministic recovery trade-offs, then let GPT-5.6-Terra recommend a highlighted viable route using cited disruption and weather context."</em></li>
-          <li><strong>Time controls:</strong> click <strong>+1 hour</strong> or <strong>+6 hours</strong> a couple of times. Narrate: the simulation clock advances, AIS-style vessel position, port congestion, berth wait, and weather penalty all update deterministically.</li>
+          <li><strong>Time controls:</strong> click <strong>+1 hour</strong> or <strong>+6 hours</strong> a couple of times. Narrate: the simulation clock advances, and port congestion, berth wait, and weather penalty all worsen deterministically as time passes — this simulates a disruption escalating in real time.</li>
           <li><strong>Route map:</strong> point out the planned route (dashed) vs. the recommended/recovery route (animated gradient line), the vessel dot, and the "Route remains on plan" / "Recovery route diverts via …" badge.</li>
           <li><strong>Reroute options:</strong> show the ranked deterministic trade-offs — transit hours, cost, carbon, delay, risk badge. Point out the card marked <strong>GPT-RECOMMENDED</strong> — GPT selected this option from the deterministic list, it did not invent a new route.</li>
           <li><strong>Manually override:</strong> click a different route card. Narrate: the operator can always override the AI selection — this replaces "GPT-RECOMMENDED" with "SELECTED" and updates the map/timeline instantly.</li>
           <li><strong>AI recommendation panel:</strong> show the rationale, reasoning steps, and applied decision input (which route and why).</li>
-          <li><strong>External intelligence panel:</strong> point out the context note — <em>"Latest shipping news plus origin and destination marine-weather citations. Context informs AI explanations only; it never changes route trade-offs."</em> Show a weather-flavored citation if Web IQ is live or snapshot evidence is present.</li>
+          <li><strong>External intelligence panel:</strong> point out the context note — <em>"Latest shipping news plus origin and destination marine-weather citations. Context informs AI explanations only; it never changes route trade-offs."</em></li>
         </ol>
         <div class="key-message"><b>Key message to land</b>"Disruption and weather intelligence sharpens why GPT recommends a route, but the trade-off numbers — transit, cost, carbon, delay, risk — are always computed deterministically first."</div>
       </section>
 
       <section>
-        <h2><span class="step-index">5 · Scenario 3 — Empty Container Utilization Across Ports</span>2–3 minutes</h2>
+        <h2><span class="step-index">3 · Scenario 3 — Empty Container Utilization Across Ports</span>3–4 minutes</h2>
+
+        <h3>Background the audience needs first</h3>
+        <div class="background">
+          <p>Shipping containers don't automatically end up where they're needed next. After a container is unloaded, it's <strong>empty</strong> until it's loaded again — and empty containers pile up at import-heavy ports while export-heavy ports run short. Moving empty containers to where they're needed is called <strong>repositioning</strong>, and it costs money and vessel space with no direct revenue, so it must be done efficiently. Plain-language definitions for what's on screen:</p>
+          <ul>
+            <li><strong>Equipment type</strong> (40HC / 40GP / 20GP) — the container size/type being balanced.</li>
+            <li><strong>Surplus / Deficit</strong> — a port has a surplus if it has more empty containers than nearby demand needs, and a deficit if it has fewer than needed.</li>
+            <li><strong>Repositioning move</strong> — shipping empty containers from a surplus port to a deficit port.</li>
+            <li><strong>Ranked moves</strong> — the deterministic engine's prioritized list of which move matters most, second most, and so on.</li>
+            <li><strong>Prioritize: Balanced / Cost / Service</strong> — lets the presenter show how the ranking shifts depending on whether the business cares more about total cost, service reliability, or a mix of both.</li>
+            <li><strong>Constraint</strong> — a plain-language reason why a move is capacity-feasible now, or limited (e.g., vessel space, distance, customs).</li>
+          </ul>
+        </div>
+
+        <h3>Walkthrough</h3>
         <ol>
           <li>Click <strong>03 Empty utilization</strong> in the nav.</li>
           <li>Read the intro: <em>"Rank capacity-feasible moves, then let GPT-5.6-Terra identify the move to prioritize using cited equipment and restriction context."</em></li>
-          <li>Change <strong>Equipment</strong> (e.g., 40HC → 20GP) and <strong>Prioritize</strong> (Balanced / Cost / Service), then click <strong>Rank repositioning moves</strong>.</li>
-          <li><strong>Equipment recovery flow:</strong> point out the animated surplus → deficit flow visualization.</li>
+          <li>Change <strong>Equipment</strong> and <strong>Prioritize</strong> (Balanced / Cost / Service), then click <strong>Rank repositioning moves</strong>.</li>
+          <li><strong>Equipment recovery flow:</strong> point out the animated surplus → deficit flow visualization — a simple before/after picture of where containers move from and to.</li>
           <li><strong>Equipment balance:</strong> show the port-level surplus/deficit bars.</li>
           <li><strong>Ranked moves:</strong> point out the move marked with the <strong>GPT priority</strong> label and left accent — again, GPT chose from an already-ranked deterministic list.</li>
           <li><strong>Prioritization evidence:</strong> show the transparent constraint text per move (why each move is capacity-feasible or limited).</li>
@@ -138,21 +167,7 @@
       </section>
 
       <section>
-        <h2><span class="step-index">6 · Configuration / Web IQ</span>1–2 minutes, optional deep cut</h2>
-        <ol>
-          <li>Click <strong>Configuration</strong> (top right).</li>
-          <li>Explain the dialog: Web IQ is the only browser-configurable provider; Foundry/GPT is server-embedded via managed identity and isn't exposed here at all.</li>
-          <li>If you have a live Web IQ key: toggle <strong>Enable live Web IQ</strong>, paste the key, click <strong>Test Web IQ</strong>, show the success message, <strong>Save Web IQ configuration</strong>, then return to any scenario and show the evidence badge flip from <strong>DATED SNAPSHOT</strong> to <strong>LIVE CITATIONS</strong>.</li>
-          <li>If staying in mock mode: point out the dialog note — <em>"Only your API key is stored in ignored local server config… status endpoints never return secrets or endpoint URLs."</em> Close the dialog.</li>
-        </ol>
-        <div class="key-message"><b>Key message to land</b>"Web IQ is fully optional and additive. With it off, the portal still has dated, clearly-labeled evidence to reason over — nothing is ever silently downgraded to fake 'live' data."</div>
-      </section>
-
-      <section>
-        <h2><span class="step-index">7 · Wrap-up</span>30 seconds</h2>
-        <ul>
-          <li>Click <strong>Sign out</strong> to show the session ends cleanly.</li>
-        </ul>
+        <h2><span class="step-index">4 · Wrap-up</span>30 seconds</h2>
         <blockquote>"Three scenarios, one consistent pattern: deterministic, auditable operational math first; GPT-5.6-Terra layered on top with cited evidence, bounded influence, and a human handoff step. This is a synthetic demonstration, not a production pricing or navigation system — but the guardrail pattern is exactly what you'd want in production."</blockquote>
       </section>
 
@@ -167,7 +182,6 @@
             <tr><td>Cited external evidence</td><td>Evidence cards with source, freshness/snapshot date, snippet, link</td></tr>
             <tr><td>Human-in-the-loop</td><td>"Acknowledge …" operator handoff button on every AI panel</td></tr>
             <tr><td>Safety/guardrails</td><td>Guardrail floor/ceiling, approval line, synthetic-data badge, caution text</td></tr>
-            <tr><td>Secure configuration</td><td>Configuration dialog note on ignored local config and no secret disclosure</td></tr>
           </tbody>
         </table>
       </section>
