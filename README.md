@@ -77,3 +77,5 @@ Deploy as a Node 20+ web service with `npm ci` and `npm start`, or build the inc
 - [Microsoft Learn MLOps](https://learn.microsoft.com/azure/machine-learning/concept-model-management-and-mlops)
 
 See [`docs/scenarios`](docs/scenarios) for each scenario's inputs, equations, evidence model, guardrails, mock data disclosures, and source links.
+
+See [`docs/demo-script.md`](docs/demo-script.md) for a step-by-step presenter runbook for live demos of the portal.
